@@ -11,26 +11,82 @@
 
     <!-- Contact Form Section -->
     <Form class="contact-form" @submit="handleSubmit">
-      <div class="form-group p-mb-4" v-for="field in fields" :key="field.name">
-        <label :for="field.name">{{ field.label }}<span class="required">*</span></label>
-        <!-- Select Dropdown for Contact Via -->
-        <template v-if="field.name === 'contactVia'">
-          <select v-model="formData.contactVia" :id="field.name">
-            <option disabled value="">Select...</option>
-            <option v-for="option in contactViaOptions" :key="option" :value="option">{{ option }}</option>
-          </select>
-        </template>
-        <template v-else>
+      <!-- Name Field -->
+      <div class="form-group p-mb-4">
+        <label for="name">Name<span class="required">*</span></label>
         <Field
-            :id="field.name"
-            v-model="formData[field.name]"
-            :as="field.type"
-            :name="field.name"
-            :placeholder="field.placeholder"
-            :rules="field.rules"
+            id="name"
+            v-model="formData.name"
+            name="name"
+            placeholder="Your Name"
+            rules="required|min:2|lettersOnly"
+        >
+
+        </Field>
+        <ErrorMessage class="error" name="name"/>
+      </div>
+
+      <!-- Contact Via Dropdown -->
+      <div class="form-group p-mb-4">
+        <label for="contactVia">Contact Via<span class="required">*</span></label>
+        <select id="contactVia" v-model="formData.contactVia">
+          <option disabled value="">Select...</option>
+          <option v-for="option in contactViaOptions" :key="option" :value="option">{{ option }}</option>
+        </select>
+        <ErrorMessage class="error" name="contactVia"/>
+      </div>
+
+      <!-- Email Field (conditionally required) -->
+      <div class="form-group p-mb-4">
+        <label for="email">Email<span class="required">*</span></label>
+        <Field
+            id="email"
+            v-model="formData.email"
+            :rules="formData.contactVia === 'Email' ? 'required|email' : ''"
+            name="email"
+            placeholder="Your Email"
         />
-        </template>
-        <ErrorMessage class="error" :name="field.name" />
+        <ErrorMessage class="error" name="email"/>
+      </div>
+
+      <!-- Contact Field (conditionally required) -->
+      <div class="form-group p-mb-4">
+        <label for="contact">Contact<span class="required">*</span></label>
+        <Field
+            id="contact"
+            v-model="formData.contact"
+            :rules="formData.contactVia === 'Phone' ? 'required|exactLength:10' : ''"
+            name="contact"
+            placeholder="Your Contact"
+        />
+        <ErrorMessage class="error" name="contact"/>
+      </div>
+
+      <!-- Address Field -->
+      <div class="form-group p-mb-4">
+        <label for="address">Address<span class="required">*</span></label>
+        <Field
+            id="address"
+            v-model="formData.address"
+            name="address"
+            placeholder="Your Address"
+            rules="required|min:3"
+        />
+        <ErrorMessage class="error" name="address"/>
+      </div>
+
+      <!-- Message Field -->
+      <div class="form-group p-mb-4">
+        <label for="message">Message<span class="required">*</span></label>
+        <Field
+            id="message"
+            v-model="formData.message"
+            name="message"
+            placeholder="Your Message"
+            rules="required|min:10"
+        />
+
+        <ErrorMessage class="error" name="message"/>
       </div>
 
       <Button type="submit">Send Message</Button>
@@ -39,15 +95,16 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, computed } from 'vue'
-import { Form, Field, ErrorMessage, defineRule, configure } from 'vee-validate'
-import { required, email, min } from '@vee-validate/rules'
+import {onMounted, reactive, computed} from 'vue'
+import {Form, Field, ErrorMessage, defineRule, configure} from 'vee-validate'
+import {required, email, min} from '@vee-validate/rules'
 import axios from 'axios'
-import { useRouter } from 'vue-router'
+import {useRouter} from 'vue-router'
 import Button from 'primevue/button'
-import Textarea from 'primevue/textarea'
 import InputText from 'primevue/inputtext'
-import Select from "primevue/select";
+import TextArea from 'primevue/textarea'
+import Select from 'primevue/select'
+
 // Reactive form data
 const formData = reactive({
   name: '',
@@ -58,33 +115,23 @@ const formData = reactive({
   contactVia: '',
 })
 
-const fields = [
-  { name: 'name', label: 'Name', placeholder: 'Your Name', as: 'InputText', rules: 'required|min:2|lettersOnly' },
-  { name: 'contactVia', label: 'Contact Via', placeholder: 'Select...', as: 'Select', rules: 'required' },
-  { name: 'email', label: 'Email', placeholder: 'Your Email', as: 'InputText', rules: computed(() => formData.contactVia === 'Email' ? 'required|email' : '') },
-  { name: 'contact', label: 'Contact', placeholder: 'Your Contact', as: 'InputText', rules: computed(() => formData.contactVia === 'Phone' ? 'required|exactLength:10' : '') },
-  { name: 'address', label: 'Address', placeholder: 'Your Address', as: 'InputText', rules: 'required|min:3' },
-  { name: 'message', label: 'Message', placeholder: 'Your Message', as: 'TextArea', rules: 'required|min:10' },
-];
-
 // Reactive options for dropdown
-const contactViaOptions = reactive<string[]>([]);
+const contactViaOptions = reactive<string[]>([])
 
 // Fetching data for dropdown options
 const fetchContactViaOptions = async () => {
   try {
     const response = await axios.get('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
-    console.log(response)
     contactViaOptions.push(...response.data)
   } catch (error) {
-    console.error('Error fetching data of contact via options:', error);
+    console.error('Error fetching data of contact via options:', error)
   }
 }
 
 // Handle form submission
 const handleSubmit = async () => {
   try {
-    const response = await axios.post('/api/contacts', formData)
+    const response = await axios.post('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', formData)
     alert(`Thank you, ${formData.name}! Your message has been sent.`)
     // Clear form data
     Object.keys(formData).forEach(key => (formData[key] = ''))
@@ -96,18 +143,26 @@ const handleSubmit = async () => {
 const router = useRouter()
 
 const navigateToViewContact = () => {
-  router.push({ name: 'viewdetails' })
+  router.push({name: 'viewdetails'})
 }
 
 // Define validation rules
 defineRule('required', required)
 defineRule('email', email)
 defineRule('min', min)
-defineRule('lettersOnly', (value: string) => /^[a-zA-Z\s]+$/.test(value) || 'Name should contain only letters.')
+defineRule('lettersOnly', value => /^[a-zA-Z\s]+$/.test(value) || 'Name should contain only letters.')
+// Register custom rule for Contact
 defineRule('exactLength', (value: string, [length]: [number]) => {
-  const isNumeric = /^[0-9]+$/.test(value);
-  return isNumeric && value.length == length || `Contact should be exactly ${length} digits.`;
+  const isNumeric = /^[0-9]+$/.test(value); // Ensure only digits
+  return isNumeric && value.length ==length || `Contact should be exactly ${length} digits.`;
 });
+
+// Custom contact rule to check for exactly 10 digits
+const exactLength = (value: string, [length]: [number]) => {
+  const isNumeric = /^[0-9]+$/.test(value); // Ensure only digits
+  if (!isNumeric) return 'Contact should contain only numbers.';
+  return value.length == length || `Contact should be exactly ${length} digits.`;
+};
 
 // Configure VeeValidate
 configure({
