@@ -77,15 +77,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { Form, Field, ErrorMessage, defineRule, configure } from 'vee-validate'
-import { required, email, min } from '@vee-validate/rules'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import Select from 'primevue/select'
-import Textarea from 'primevue/textarea'
-import { useFetch } from '#app'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { Form, Field, ErrorMessage, defineRule, configure } from 'vee-validate';
+import { required, email, min } from '@vee-validate/rules';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
+import Textarea from 'primevue/textarea';
 
 // Reactive form data
 const formData = ref({
@@ -95,79 +94,92 @@ const formData = ref({
   address: '',
   message: '',
   contactVia: ''
-})
+});
+
+// Reactive variables for fetching contact via options
+const contactViaOptions = ref([]); // Store fetched options
+const fetchError = ref(null); // Store any fetch error
 
 // Computed rules based on the contact method
 const emailRules = computed(() => {
-  return formData.value.contactVia === 'Email' ? 'required|email' : ''
-})
+  return formData.value.contactVia === 'Email' ? 'required|email' : '';
+});
 
 const contactRules = computed(() => {
-  return formData.value.contactVia === 'Phone' ? 'required|exactLength:10' : ''
-})
+  return formData.value.contactVia === 'Phone' ? 'required|exactLength:10' : '';
+});
 
-// Fetch data using Nuxt's useFetch
-const { data: contactViaOptions, error: fetchError } = await useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
+// Fetch data using $fetch
+const fetchContactViaOptions = async () => {
+  try {
+    contactViaOptions.value = await $fetch('/api/contacts/contactvia'); // Fetch options
+  } catch (error) {
+    fetchError.value = 'Failed to load contact via options.'; // Set error message
+    console.error('Error fetching contact via options:', error); // Log error for debugging
+  }
+};
 
 // Handle form submission
 const handleSubmit = async () => {
   try {
-    const { data, error } = await useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', {
+    const { data, error } = await $fetch('/api/contacts', {
       method: 'POST',
       body: formData.value, // Pass the form data
-    })
+    });
 
-    if (error.value) {
-      throw new Error(error.value.message)
+    if (error) {
+      throw new Error(error.message);
     }
 
-    console.log(data.value)
-    alert(`Thank you, ${formData.value.name}! Your message has been sent.`)
+    console.log(data);
+    alert(`Thank you, ${formData.value.name}! Your message has been sent.`);
 
     // Clear form data after submission
-    Object.keys(formData.value).forEach(key => (formData.value[key] = ''))
+    Object.keys(formData.value).forEach(key => (formData.value[key] = ''));
   } catch (error) {
-    alert('An error occurred while sending your message. Please try again.')
-    console.error(error)
+    alert('An error occurred while sending your message. Please try again.');
+    console.error(error);
   }
-}
+};
+
+// Fetch contact via options on component mount
+onMounted(fetchContactViaOptions);
 
 // Navigate to view contact page
-const router = useRouter()
-
+const router = useRouter();
 const navigateToViewContact = () => {
-  router.push({ name: 'viewdetails' })
-}
+  router.push({ name: 'viewdetails' });
+};
 
 // Define VeeValidate rules
-defineRule('required', required)
-defineRule('email', email)
-defineRule('min', min)
-defineRule('lettersOnly', value => /^[a-zA-Z\s]+$/.test(value) || 'Name should contain only letters.')
+defineRule('required', required);
+defineRule('email', email);
+defineRule('min', min);
+defineRule('lettersOnly', value => /^[a-zA-Z\s]+$/.test(value) || 'Name should contain only letters.');
 defineRule('exactLength', (value: string, [length]: [number]) => {
-  const isNumeric = /^[0-9]+$/.test(value)
-  return isNumeric && value.length === length || `Contact should be exactly ${length} digits.`
-})
+  const isNumeric = /^[0-9]+$/.test(value);
+  return isNumeric && value.length === length || `Contact should be exactly ${length} digits.`;
+});
 
 // Configure VeeValidate
 configure({
   validateOnInput: true,
   generateMessage: (context) => {
-    const fieldName = context.field
+    const fieldName = context.field;
     const messages = {
       required: `${fieldName} is required.`,
       min: `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} should be at least ${context.rule?.params[0]} characters.`,
       email: 'Email must be valid and contain "@" and "."',
       lettersOnly: 'Name should contain only letters.',
       exactLength: `Contact should be exactly ${context.rule?.params[0]} digits long.`
-    }
-    return messages[context.rule?.name] || `Invalid ${fieldName}.`
+    };
+    return messages[context.rule?.name] || `Invalid ${fieldName}.`;
   }
-})
+});
 
 // Handle any fetch errors
 if (fetchError.value) {
-  console.error('Error fetching contact via options:', fetchError.value)
+  console.error('Error fetching contact via options:', fetchError.value);
 }
 </script>
 

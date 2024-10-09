@@ -14,18 +14,21 @@ export default defineNuxtConfig({
             }
         }
     },
+
     runtimeConfig: {
         public: {
             apiBase: '/api'
         }
     },
+
     nitro: {
         devProxy: {
             '/api': {
-                target: 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api', // Base API URL
-                changeOrigin: true, // Change the origin of the host header to the target URL
-                prependPath: true   // Prepend the path to the target
+                target: 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api',
+                changeOrigin: true,
+                prependPath: true
             }
         }
-    }
+    },
+    compatibilityDate: '2024-10-09'
 });

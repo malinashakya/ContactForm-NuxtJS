@@ -32,97 +32,65 @@
       </DataTable>
     </div>
 
-
     <!-- Edit Dialog -->
-    <!-- This dialog appears when showEditDialog is true -->
     <Dialog v-model:visible="showEditDialog"
             :style="{ width: '30vw', background:'grey', padding:'10px',border: '1px solid grey' } "
             header="Edit Contact"
             modal>
-      <!-- Form to update contact details -->
       <Form class="contact-form" @submit="updateContact">
         <div class="form-group p-mb-4">
           <label for="name">Name<span class="required">*</span></label>
-          <Field
-              id="name"
-              v-model="editedContact.name"
-              as="InputText"
-              name="name"
-              placeholder="Your Name"
-              rules="required|min:3"
-          />
+          <Field v-slot="{ field, errorMessage }" v-model="editedContact.name" name="name" rules="required|min:3">
+            <InputText
+                placeholder="Your Name"
+                v-bind="field"/>
+          </Field>
           <ErrorMessage class="error" name="name"/>
         </div>
 
-        <!-- Dropdown for selecting contact via -->
         <div class="form-group p-mb-4">
           <label for="contactVia">Contact Via<span class="required">*</span></label>
-          <Field
-              id="contactVia"
-              v-model="editedContact.contactVia"
-              as="select"
-              name="contactVia"
-              rules="required"
-          >
-            <option value="">Select...</option>
-            <option v-for="option in contactViaOptions" :key="option" :value="option">
-              {{ option }}
-            </option>
+          <Field v-slot="{ field, errorMessage }" name="contactVia" rules="required">
+            <Select
+                id="contactVia"
+                v-model="editedContact.contactVia"
+                :options="contactViaOptions"
+                placeholder="Select Contact Method"
+                v-bind="field"
+            />
           </Field>
           <ErrorMessage class="error" name="contactVia"/>
         </div>
 
         <div class="form-group p-mb-4">
           <label for="email">Email<span class="required">*</span></label>
-          <Field
-              id="email"
-              v-model="editedContact.email"
-              :rules="emailRules"
-              as="InputText"
-              name="email"
-              placeholder="Your Email"
-              type="email"
-          />
+          <Field v-slot="{ field, errorMessage }" v-model="editedContact.email" :rules="emailRules" name="email">
+            <InputText placeholder="Your Email" type="email" v-bind="field"/>
+          </Field>
           <ErrorMessage class="error" name="email"/>
         </div>
 
         <div class="form-group p-mb-4">
           <label for="contact">Contact<span class="required">*</span></label>
-          <Field
-              id="contact"
-              v-model="editedContact.contact"
-              :rules="contactRules"
-              as="InputText"
-              name="contact"
-              placeholder="Your Contact"
-          />
+          <Field  v-model="editedContact.contact" :rules="contactRules" name="contact">
+            <InputText placeholder="Your Contact" v-bind="field"/>
+          </Field>
           <ErrorMessage class="error" name="contact"/>
         </div>
 
         <div class="form-group p-mb-4">
           <label for="address">Address<span class="required">*</span></label>
-          <Field
-              id="address"
-              v-model="editedContact.address"
-              as="InputText"
-              name="address"
-              placeholder="Your Address"
-              rules="required"
-          />
+          <Field v-slot="{ field, errorMessage }" v-model="editedContact.address" name="address" rules="required|min:3">
+            <InputText placeholder="Your Address" v-bind="field"/>
+          </Field>
           <ErrorMessage class="error" name="address"/>
         </div>
 
         <div class="form-group p-mb-4">
           <label for="message">Message<span class="required">*</span></label>
-          <Field
-              id="message"
-              v-model="editedContact.message"
-              as="TextArea"
-              name="message"
-              placeholder="Your Message"
-              rows="4"
-              rules="required|min:10"
-          />
+          <Field v-slot="{ field, errorMessage }" v-model="editedContact.message" name="message" rules="required|min:10">
+            <Textarea placeholder="Your Message" rows="4" v-bind="field"/>
+          </Field>
           <ErrorMessage class="error" name="message"/>
         </div>
 
@@ -130,63 +98,52 @@
                 style="background: #eded07; border: 1px solid rgba(244,244,73,0.89); border-radius: 3px " type="submit">
           Submit
         </Button>
-        <!-- Button to close the dialog without making changes -->
         <Button class="button p-2 m-2 " style="background: red; border: 1px solid #e35555; border-radius: 3px"
                 @click="closeEditDialog">
           Cancel
         </Button>
-
       </Form>
 
-      <!-- Show success message if the contact was updated successfully -->
       <div v-if="updateSuccess" class="success-message mt-2">{{ updateSuccess }}</div>
     </Dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted, reactive, computed} from 'vue';
-import axios from 'axios';
+import { ref, onMounted, reactive, computed } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
-import {ErrorMessage, Field, Form, defineRule, configure} from 'vee-validate';
-import {required, email, min} from '@vee-validate/rules';
+import { ErrorMessage, Field, Form, defineRule, configure } from 'vee-validate';
+import { required, email, min } from '@vee-validate/rules';
 import Textarea from "primevue/textarea";
+import Select from "primevue/select";
 
-//THis becomes active only if contactVia is Email, i.e. Email's validation is active
+// Validation rules
 const emailRules = computed(() => {
   return editedContact.value?.contactVia === 'Email' ? 'required|email' : '';
 });
 
-//THis becomes active only if contactVia is Phone, i.e. Contact's validation is active
 const contactRules = computed(() => {
   return editedContact.value?.contactVia === 'Phone' ? 'required|exactLength:10' : '';
 });
 
-// Custom name rule to check for letters only (no numbers or special characters)
 const lettersOnly = (value: string) => {
-  const nameRegex = /^[a-zA-Z\s]+$/
-  return nameRegex.test(value) || 'Name should contain only letters.'
+  const nameRegex = /^[a-zA-Z\s]+$/;
+  return nameRegex.test(value) || 'Name should contain only letters.';
 }
 
-// Custom contact rule to check for exactly 10 digits
 const exactLength = (value: string, [length]: [number]) => {
-  const isNumeric = /^[0-9]+$/.test(value); // Ensure only digits
+  const isNumeric = /^[0-9]+$/.test(value);
   if (!isNumeric) return 'Contact should contain only numbers.';
   return value.length == length || `Contact should be exactly ${length} digits.`;
 };
 
-
-// Define validation rules
 defineRule('required', required);
 defineRule('email', email);
 defineRule('min', min);
-defineRule('lettersOnly', lettersOnly)
-defineRule('exactLength', (value: string, [length]: [number]) => {
-  const isNumeric = /^[0-9]+$/.test(value); // Ensure only digits
-  return isNumeric && value.length == length || `Contact should be exactly ${length} digits.`;
-});
+defineRule('lettersOnly', lettersOnly);
+defineRule('exactLength', exactLength);
 
 // Define types for the contact data
 interface Contact {
@@ -196,24 +153,23 @@ interface Contact {
   contact: string;
   email: string;
   message: string;
-  contactvia: 'Email' | 'Phone';
+  contactVia: 'Email' | 'Phone';
 }
 
-// Configure VeeValidate for customized messages
 configure({
-  validateOnInput: true, // Enables real-time validation
+  validateOnInput: true,
   generateMessage: (context) => {
-    const fieldName = context.field
+    const fieldName = context.field;
     const messages = {
       required: `${fieldName} is required.`,
       min: `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} should be at least ${context.rule?.params[0]} characters.`,
       email: 'Email must be valid and contain "@" and "."',
       lettersOnly: 'Name should contain only letters.',
       exactLength: 'Contact should be exactly 10 digits long.'
-    }
-    return messages[context.rule?.name] || `Invalid ${fieldName}.`
+    };
+    return messages[context.rule?.name] || `Invalid ${fieldName}.`;
   }
-})
+});
 
 // Refs to hold contact details, loading state, and dialog state
 const contacts = ref<Contact[]>([]);
@@ -222,24 +178,23 @@ const error = ref<string | null>(null);
 const showEditDialog = ref(false);
 const editedContact = ref<Contact | null>(null);
 const updateSuccess = ref<string | null>(null);
-
 const contactViaOptions = reactive<string[]>([]);
 
-//To fetch data from the backend
+// Fetch data from the backend
 const fetchContactViaOptions = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
-    contactViaOptions.push(...response.data)
+    const response = await $fetch('/api/contacts/contactvia'); // Fetch data using $fetch
+    contactViaOptions.push(...response); // Push the fetched data into the contactViaOptions array
   } catch (error) {
     console.error('Error fetching data of contact via options:', error);
   }
 }
+
 // Fetch contact data when the component is mounted
 onMounted(async () => {
   try {
-    // Make a GET request to fetch contacts
-    const response = await axios.get('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts');
-    contacts.value = response.data.result; // Store the result in contacts
+    const response = await $fetch('/api/contacts'); // Fetch data using $fetch
+    contacts.value = response.result; // Store the result in contacts
   } catch (err) {
     error.value = 'Failed to load contacts.'; // Set error message if request fails
     console.error('Error fetching contacts:', err); // Log error for debugging
@@ -250,7 +205,7 @@ onMounted(async () => {
 
 // Open the edit dialog and set the contact to be edited
 const openEditDialog = (contact: Contact) => {
-  editedContact.value = {...contact}; // Create a copy of the contact for editing
+  editedContact.value = { ...contact }; // Create a copy of the contact for editing
   showEditDialog.value = true; // Show the edit dialog
 };
 
@@ -265,8 +220,11 @@ const closeEditDialog = () => {
 const updateContact = async () => {
   if (editedContact.value) {
     try {
-      // Make a PUT request to update the contact
-      await axios.put(`http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/${editedContact.value.id}`, editedContact.value);
+      // Make a PUT request to update the contact using $fetch
+      await $fetch(`/api/contacts/${editedContact.value.id}`, {
+        method: 'PUT',
+        body: editedContact.value,
+      });
 
       // Update the contact list with the new data
       contacts.value = contacts.value.map(contact =>
@@ -287,8 +245,11 @@ const updateContact = async () => {
 // Handle delete contact
 const deleteContact = async (id: number) => {
   try {
-    // Make a DELETE request to remove the contact
-    await axios.delete(`http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/${id}`);
+    // Make a DELETE request to remove the contact using $fetch
+    await $fetch(`/api/contacts/${id}`, {
+      method: 'DELETE',
+    });
+
     // Remove the deleted contact from the list
     contacts.value = contacts.value.filter(contact => contact.id !== id);
   } catch (err) {
@@ -297,62 +258,14 @@ const deleteContact = async (id: number) => {
   }
 };
 
-
+// Fetch contact via options on mounted
 onMounted(() => {
-  fetchContactViaOptions()
-})
+  fetchContactViaOptions();
+});
 </script>
 
 <style scoped>
-.form-group {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  color: #ecf0f1;
-}
-
-.form-group input,
-.form-group textarea {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: whitesmoke;
-  font-size: 1rem;
-  color: #333;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: 2px solid #1abc9c;
-}
-
-button{
-  padding: 0.7rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #1abc9c;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-button:hover{
-  background: dodgerblue;
-}
-
 .error {
-  color: rgba(255, 0, 0, 0.85);
-  font-size: 1rem;
-  margin-top: 0.5rem;
-}
-
-.required {
   color: rgba(255, 0, 0, 0.85);
 }
 </style>
