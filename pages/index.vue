@@ -108,18 +108,26 @@ const contactRules = computed(() => {
 // Fetch data using Nuxt's useFetch
 const { data: contactViaOptions, refresh: fetchContactViaOptions } = useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
 
-// Handle form submission
+// Handle form submission using useFetch
 const handleSubmit = async () => {
   try {
-    const { $axios } = useNuxtApp() // Use Nuxt's axios instance
-    const response = await $axios.post('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', formData.value)
-    console.log(response)
+    const { data, error } = await useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', {
+      method: 'POST',
+      body: formData.value, // Pass the form data
+    })
+
+    if (error.value) {
+      throw new Error(error.value.message)
+    }
+
+    console.log(data.value)
     alert(`Thank you, ${formData.value.name}! Your message has been sent.`)
 
     // Clear form data after submission
     Object.keys(formData.value).forEach(key => (formData.value[key] = ''))
   } catch (error) {
     alert('An error occurred while sending your message. Please try again.')
+    console.error(error)
   }
 }
 
