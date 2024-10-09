@@ -114,12 +114,12 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted, reactive, computed} from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
-import {ErrorMessage, Field, Form, defineRule, configure} from 'vee-validate';
-import {required, email, min} from '@vee-validate/rules';
+import { ErrorMessage, Field, Form, defineRule, configure } from 'vee-validate';
+import { required, email, min } from '@vee-validate/rules';
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import InputText from "primevue/inputtext";
@@ -185,48 +185,70 @@ const editedContact = ref<Contact | null>(null);
 const updateSuccess = ref<string | null>(null);
 const contactViaOptions = reactive<string[]>([]);
 
-// Fetch data from the backend
-const fetchContactViaOptions = async () => {
+// Function to fetch contact data with delay
+const fetchContacts = async () => {
   try {
-    const response = await $fetch('/api/contacts/contactvia'); // Fetch data using $fetch
-    contactViaOptions.push(...response); // Push the fetched data into the contactViaOptions array
-  } catch (error) {
-    console.error('Error fetching data of contact via options:', error);
-  }
-}
-
-// Fetch contact data when the component is mounted
-onMounted(async () => {
-  try {
-    const response = await $fetch('/api/contacts'); // Fetch data using $fetch
-    contacts.value = response.result; // Store the result in contacts
+    const { data, error: fetchError } = await useFetch('/api/contacts');
+    if (fetchError.value) {
+      error.value = 'Failed to load contacts.';
+      console.error('Error fetching contacts:', fetchError.value);
+    } else {
+      contacts.value = data.value.result; //
+    }
   } catch (err) {
-    error.value = 'Failed to load contacts.'; // Set error message if request fails
-    console.error('Error fetching contacts:', err); // Log error for debugging
+    error.value = 'Failed to load contacts.';
+    console.error('Error fetching contacts:', err);
   } finally {
     loading.value = false; // Set loading to false after request completes
   }
+};
+
+// Fetch contact data when the component is mounted
+onMounted(() => {
+  setTimeout(() => {
+    loading.value = true;
+    fetchContacts();
+  }, 100);
+});
+
+// Function to fetch data from the backend for contact options
+const fetchContactViaOptions = async () => {
+  try {
+    const { data, error: fetchError } = await useFetch('/api/contacts/contactvia');
+    if (fetchError.value) {
+      console.error('Error fetching data of contact via options:', fetchError.value);
+    } else {
+      contactViaOptions.push(...data.value);
+    }
+  } catch (error) {
+    console.error('Error fetching data of contact via options:', error);
+  }
+};
+
+// Fetch contact via options on mounted
+onMounted(() => {
+  fetchContactViaOptions();
 });
 
 // Open the edit dialog and set the contact to be edited
 const openEditDialog = (contact: Contact) => {
-  editedContact.value = {...contact}; // Create a copy of the contact for editing
-  showEditDialog.value = true; // Show the edit dialog
+  editedContact.value = { ...contact };
+  showEditDialog.value = true;
 };
 
 // Close the edit dialog
 const closeEditDialog = () => {
-  showEditDialog.value = false; // Hide the edit dialog
-  editedContact.value = null; // Clear the edited contact
-  updateSuccess.value = null; // Clear any success message
+  showEditDialog.value = false;
+  editedContact.value = null;
+  updateSuccess.value = null;
 };
 
 // Update contact details
 const updateContact = async () => {
   if (editedContact.value) {
     try {
-      // Make a PUT request to update the contact using $fetch
-      await $fetch(`/api/contacts/${editedContact.value.id}`, {
+      // Make a PUT request to update the contact using useFetch
+      await useFetch(`/api/contacts/${editedContact.value.id}`, {
         method: 'PUT',
         body: editedContact.value,
       });
@@ -250,8 +272,8 @@ const updateContact = async () => {
 // Handle delete contact
 const deleteContact = async (id: number) => {
   try {
-    // Make a DELETE request to remove the contact using $fetch
-    await $fetch(`/api/contacts/${id}`, {
+    // Make a DELETE request to remove the contact using useFetch
+    await useFetch(`/api/contacts/${id}`, {
       method: 'DELETE',
     });
 
@@ -262,11 +284,6 @@ const deleteContact = async (id: number) => {
     console.error('Error deleting contact:', err); // Log error for debugging
   }
 };
-
-// Fetch contact via options on mounted
-onMounted(() => {
-  fetchContactViaOptions();
-});
 </script>
 
 <style scoped>

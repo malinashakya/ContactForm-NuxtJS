@@ -23,13 +23,18 @@
       <div class="form-group m-4">
         <label for="contactVia">Contact Via<span class="required">*</span></label>
         <Field v-slot="{ field }" name="contactVia" rules="required">
-          <Select
-              id="contactVia"
-              v-model="formData.contactVia"
-              :options="contactViaOptions"
-              placeholder="Select Contact Method"
-              v-bind="field"
-          />
+          <template v-if="!isLoading">
+            <Select
+                id="contactVia"
+                v-model="formData.contactVia"
+                :options="contactViaOptions"
+                placeholder="Select Contact Method"
+                v-bind="field"
+            />
+          </template>
+          <template v-else>
+            <p>Loading options...</p> <!-- Display while loading -->
+          </template>
         </Field>
         <ErrorMessage class="error" name="contactVia" />
       </div>
@@ -85,7 +90,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
-import { useFetch } from '#app'; // Using built-in useFetch from Nuxt 3
+import { useFetch } from '#app'; // Import useFetch
 
 // Reactive form data
 const formData = ref({
@@ -97,9 +102,42 @@ const formData = ref({
   contactVia: ''
 });
 
-// Fetch contact via options using useFetch
-const { data: contactViaOptions, error: fetchError } = await useFetch('/api/contacts/contactvia');
+// Reactive state for contact via options and loading
+const contactViaOptions = ref([]);
+const fetchError = ref(null);
+const isLoading = ref(true);
 
+// Function to fetch contact via options
+const fetchContactViaOptions = async () => {
+  try {
+    isLoading.value = true; // Set loading state to true
+
+    // Fetch contact via options
+    const { data, error } = await useFetch('/api/contacts/contactvia', {
+      method: 'GET',
+    });
+
+    if (error.value) {
+      fetchError.value = error.value;
+      console.error('Error fetching contact methods:', error.value);
+    } else if (data.value) {
+      contactViaOptions.value = data.value || []; // Ensure that fetched data is not null
+      console.log('Fetched options:', data.value);
+    }
+  } catch (err) {
+    console.error('Error fetching contact methods:', err);
+    fetchError.value = 'Error fetching contact methods. Please try again later.';
+  } finally {
+    isLoading.value = false; // Set loading state to false after fetching
+  }
+};
+
+// Fetch contact via options on mounted with a 2-second delay
+onMounted(() => {
+  setTimeout(() => {
+    fetchContactViaOptions();
+  }, 100); // 100 milliseconds (0.1seconds)
+});
 // Computed rules based on the contact method
 const emailRules = computed(() => {
   return formData.value.contactVia === 'Email' ? 'required|email' : '';
@@ -163,11 +201,6 @@ configure({
     return messages[context.rule?.name] || `Invalid ${fieldName}.`;
   }
 });
-
-// Handle any fetch errors
-if (fetchError.value) {
-  console.error('Error fetching contact via options:', fetchError.value);
-}
 </script>
 
 <style scoped>
