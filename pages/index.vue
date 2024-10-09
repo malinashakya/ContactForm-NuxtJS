@@ -85,6 +85,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
+import { useFetch } from '#app'; // Using built-in useFetch from Nuxt 3
 
 // Reactive form data
 const formData = ref({
@@ -96,9 +97,8 @@ const formData = ref({
   contactVia: ''
 });
 
-// Reactive variables for fetching contact via options
-const contactViaOptions = ref([]); // Store fetched options
-const fetchError = ref(null); // Store any fetch error
+// Fetch contact via options using useFetch
+const { data: contactViaOptions, error: fetchError } = await useFetch('/api/contacts/contactvia');
 
 // Computed rules based on the contact method
 const emailRules = computed(() => {
@@ -109,29 +109,19 @@ const contactRules = computed(() => {
   return formData.value.contactVia === 'Phone' ? 'required|exactLength:10' : '';
 });
 
-// Fetch data using $fetch
-const fetchContactViaOptions = async () => {
-  try {
-    contactViaOptions.value = await $fetch('/api/contacts/contactvia'); // Fetch options
-  } catch (error) {
-    fetchError.value = 'Failed to load contact via options.'; // Set error message
-    console.error('Error fetching contact via options:', error); // Log error for debugging
-  }
-};
-
 // Handle form submission
 const handleSubmit = async () => {
   try {
-    const { data, error } = await $fetch('/api/contacts', {
+    const { data, error } = await useFetch('/api/contacts', {
       method: 'POST',
       body: formData.value, // Pass the form data
     });
 
-    if (error) {
-      throw new Error(error.message);
+    if (error.value) {
+      throw new Error(error.value.message);
     }
 
-    console.log(data);
+    console.log(data.value);
     alert(`Thank you, ${formData.value.name}! Your message has been sent.`);
 
     // Clear form data after submission
@@ -141,9 +131,6 @@ const handleSubmit = async () => {
     console.error(error);
   }
 };
-
-// Fetch contact via options on component mount
-onMounted(fetchContactViaOptions);
 
 // Navigate to view contact page
 const router = useRouter();
@@ -158,7 +145,7 @@ defineRule('min', min);
 defineRule('lettersOnly', value => /^[a-zA-Z\s]+$/.test(value) || 'Name should contain only letters.');
 defineRule('exactLength', (value: string, [length]: [number]) => {
   const isNumeric = /^[0-9]+$/.test(value);
-  return isNumeric && value.length === length || `Contact should be exactly ${length} digits.`;
+  return isNumeric && value.length == length || `Contact should be exactly ${length} digits.`;
 });
 
 // Configure VeeValidate

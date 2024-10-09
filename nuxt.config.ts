@@ -17,7 +17,7 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         public: {
-            apiBase: '/api'
+            apiBase: ''  // Leave empty to use with proxy
         }
     },
 
@@ -30,5 +30,6 @@ export default defineNuxtConfig({
             }
         }
     },
+
     compatibilityDate: '2024-10-09'
 });
