@@ -48,9 +48,10 @@
           <ErrorMessage class="error" name="name"/>
         </div>
 
-        <div class="form-group p-mb-4">
+        <!-- Contact Via Field -->
+        <div class="form-group m-4">
           <label for="contactVia">Contact Via<span class="required">*</span></label>
-          <Field v-slot="{ field, errorMessage }" name="contactVia" rules="required">
+          <Field v-slot="{ field }" name="contactVia" rules="required">
             <Select
                 id="contactVia"
                 v-model="editedContact.contactVia"
@@ -62,18 +63,20 @@
           <ErrorMessage class="error" name="contactVia"/>
         </div>
 
-        <div class="form-group p-mb-4">
+        <!-- Email Field -->
+        <div v-if="editedContact.contactVia === 'Email'" class="form-group m-4">
           <label for="email">Email<span class="required">*</span></label>
-          <Field v-slot="{ field, errorMessage }" v-model="editedContact.email" :rules="emailRules" name="email">
-            <InputText placeholder="Your Email" type="email" v-bind="field"/>
+          <Field v-slot="{ field }" :rules="emailRules" name="email">
+            <InputText v-model="editedContact.email" placeholder="Your Email" type="email" v-bind="field"/>
           </Field>
           <ErrorMessage class="error" name="email"/>
         </div>
 
-        <div class="form-group p-mb-4">
+        <!-- Contact Field -->
+        <div v-if="editedContact.contactVia === 'Phone'" class="form-group m-4">
           <label for="contact">Contact<span class="required">*</span></label>
-          <Field  v-model="editedContact.contact" :rules="contactRules" name="contact">
-            <InputText placeholder="Your Contact" v-bind="field"/>
+          <Field v-slot="{ field }" :rules="contactRules" name="contact">
+            <InputText v-model="editedContact.contact" placeholder="Your Contact" v-bind="field"/>
           </Field>
           <ErrorMessage class="error" name="contact"/>
         </div>
@@ -88,7 +91,8 @@
 
         <div class="form-group p-mb-4">
           <label for="message">Message<span class="required">*</span></label>
-          <Field v-slot="{ field, errorMessage }" v-model="editedContact.message" name="message" rules="required|min:10">
+          <Field v-slot="{ field, errorMessage }" v-model="editedContact.message" name="message"
+                 rules="required|min:10">
             <Textarea placeholder="Your Message" rows="4" v-bind="field"/>
           </Field>
           <ErrorMessage class="error" name="message"/>
@@ -110,14 +114,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, reactive, computed } from 'vue';
+import {ref, onMounted, reactive, computed} from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
-import { ErrorMessage, Field, Form, defineRule, configure } from 'vee-validate';
-import { required, email, min } from '@vee-validate/rules';
+import {ErrorMessage, Field, Form, defineRule, configure} from 'vee-validate';
+import {required, email, min} from '@vee-validate/rules';
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
+import InputText from "primevue/inputtext";
 
 // Validation rules
 const emailRules = computed(() => {
@@ -205,7 +210,7 @@ onMounted(async () => {
 
 // Open the edit dialog and set the contact to be edited
 const openEditDialog = (contact: Contact) => {
-  editedContact.value = { ...contact }; // Create a copy of the contact for editing
+  editedContact.value = {...contact}; // Create a copy of the contact for editing
   showEditDialog.value = true; // Show the edit dialog
 };
 
