@@ -11,9 +11,9 @@
     <!-- Contact Form Section -->
     <Form class="contact-form" @submit="handleSubmit">
       <!-- Name Field -->
-      <div class="form-group m-4 ">
+      <div class="form-group m-4">
         <label for="name">Name<span class="required">*</span></label>
-        <Field v-slot="{ field, errorMessage }" name="name" rules="required|min:2|lettersOnly">
+        <Field v-slot="{ field }" name="name" rules="required|min:2|lettersOnly">
           <InputText v-model="formData.name" placeholder="Your Name" v-bind="field" class="full" />
         </Field>
         <ErrorMessage class="error" name="name" />
@@ -22,7 +22,7 @@
       <!-- Contact Via Field -->
       <div class="form-group m-4">
         <label for="contactVia">Contact Via<span class="required">*</span></label>
-        <Field v-slot="{ field, errorMessage }" name="contactVia" rules="required">
+        <Field v-slot="{ field }" name="contactVia" rules="required">
           <Select
               id="contactVia"
               v-model="formData.contactVia"
@@ -37,7 +37,7 @@
       <!-- Email Field -->
       <div class="form-group m-4" v-if="formData.contactVia === 'Email'">
         <label for="email">Email<span class="required">*</span></label>
-        <Field v-slot="{ field, errorMessage }" :rules="emailRules" name="email">
+        <Field v-slot="{ field }" :rules="emailRules" name="email">
           <InputText v-model="formData.email" placeholder="Your Email" type="email" v-bind="field" />
         </Field>
         <ErrorMessage class="error" name="email" />
@@ -46,7 +46,7 @@
       <!-- Contact Field -->
       <div class="form-group m-4" v-if="formData.contactVia === 'Phone'">
         <label for="contact">Contact<span class="required">*</span></label>
-        <Field v-slot="{ field, errorMessage }" :rules="contactRules" name="contact">
+        <Field v-slot="{ field }" :rules="contactRules" name="contact">
           <InputText v-model="formData.contact" placeholder="Your Contact" v-bind="field" />
         </Field>
         <ErrorMessage class="error" name="contact" />
@@ -55,7 +55,7 @@
       <!-- Address Field -->
       <div class="form-group m-4">
         <label for="address">Address<span class="required">*</span></label>
-        <Field v-slot="{ field, errorMessage }" name="address" rules="required|min:3">
+        <Field v-slot="{ field }" name="address" rules="required|min:3">
           <InputText v-model="formData.address" placeholder="Your Address" v-bind="field" />
         </Field>
         <ErrorMessage class="error" name="address" />
@@ -64,7 +64,7 @@
       <!-- Message Field -->
       <div class="form-group m-4">
         <label for="message">Message<span class="required">*</span></label>
-        <Field v-slot="{ field, errorMessage }" name="message" rules="required|min:10">
+        <Field v-slot="{ field }" name="message" rules="required|min:10">
           <Textarea v-model="formData.message" placeholder="Your Message" rows="4" v-bind="field" />
         </Field>
         <ErrorMessage class="error" name="message" />
@@ -75,16 +75,17 @@
     </Form>
   </section>
 </template>
+
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Form, Field, ErrorMessage, defineRule, configure } from 'vee-validate'
 import { required, email, min } from '@vee-validate/rules'
-import { useFetch } from '#app'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Textarea from 'primevue/textarea'
+import { useFetch } from '#app'
 
 // Reactive form data
 const formData = ref({
@@ -106,9 +107,9 @@ const contactRules = computed(() => {
 })
 
 // Fetch data using Nuxt's useFetch
-const { data: contactViaOptions, refresh: fetchContactViaOptions } = useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
+const { data: contactViaOptions, error: fetchError } = await useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
 
-// Handle form submission using useFetch
+// Handle form submission
 const handleSubmit = async () => {
   try {
     const { data, error } = await useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', {
@@ -145,7 +146,7 @@ defineRule('min', min)
 defineRule('lettersOnly', value => /^[a-zA-Z\s]+$/.test(value) || 'Name should contain only letters.')
 defineRule('exactLength', (value: string, [length]: [number]) => {
   const isNumeric = /^[0-9]+$/.test(value)
-  return isNumeric && value.length == length || `Contact should be exactly ${length} digits.`
+  return isNumeric && value.length === length || `Contact should be exactly ${length} digits.`
 })
 
 // Configure VeeValidate
@@ -158,9 +159,20 @@ configure({
       min: `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} should be at least ${context.rule?.params[0]} characters.`,
       email: 'Email must be valid and contain "@" and "."',
       lettersOnly: 'Name should contain only letters.',
-      exactLength: 'Contact should be exactly 10 digits long.'
+      exactLength: `Contact should be exactly ${context.rule?.params[0]} digits long.`
     }
     return messages[context.rule?.name] || `Invalid ${fieldName}.`
   }
 })
+
+// Handle any fetch errors
+if (fetchError.value) {
+  console.error('Error fetching contact via options:', fetchError.value)
+}
 </script>
+
+<style scoped>
+.error {
+  color: red;
+}
+</style>
