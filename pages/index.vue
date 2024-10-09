@@ -1,7 +1,6 @@
 <template>
-  <section class="contact">
-    <!-- Greeting Section -->
-    <div class="greet">
+  <section class="contact p-d-flex">
+    <div class="greet m-4">
       <Button class="view-contact-button" @click="navigateToViewContact">
         View Contact
       </Button>
@@ -12,157 +11,134 @@
     <!-- Contact Form Section -->
     <Form class="contact-form" @submit="handleSubmit">
       <!-- Name Field -->
-      <div class="form-group p-mb-4">
+      <div class="form-group m-4 ">
         <label for="name">Name<span class="required">*</span></label>
-        <Field
-            id="name"
-            v-model="formData.name"
-            name="name"
-            placeholder="Your Name"
-            rules="required|min:2|lettersOnly"
-        >
-
+        <Field v-slot="{ field, errorMessage }" name="name" rules="required|min:2|lettersOnly">
+          <InputText v-model="formData.name" placeholder="Your Name" v-bind="field" class="full" />
         </Field>
-        <ErrorMessage class="error" name="name"/>
+        <ErrorMessage class="error" name="name" />
       </div>
 
-      <!-- Contact Via Dropdown -->
-      <div class="form-group p-mb-4">
+      <!-- Contact Via Field -->
+      <div class="form-group m-4">
         <label for="contactVia">Contact Via<span class="required">*</span></label>
-        <select id="contactVia" v-model="formData.contactVia">
-          <option disabled value="">Select...</option>
-          <option v-for="option in contactViaOptions" :key="option" :value="option">{{ option }}</option>
-        </select>
-        <ErrorMessage class="error" name="contactVia"/>
+        <Field v-slot="{ field, errorMessage }" name="contactVia" rules="required">
+          <Select
+              id="contactVia"
+              v-model="formData.contactVia"
+              :options="contactViaOptions"
+              placeholder="Select Contact Method"
+              v-bind="field"
+          />
+        </Field>
+        <ErrorMessage class="error" name="contactVia" />
       </div>
 
-      <!-- Email Field (conditionally required) -->
-      <div class="form-group p-mb-4">
+      <!-- Email Field -->
+      <div class="form-group m-4" v-if="formData.contactVia === 'Email'">
         <label for="email">Email<span class="required">*</span></label>
-        <Field
-            id="email"
-            v-model="formData.email"
-            :rules="formData.contactVia === 'Email' ? 'required|email' : ''"
-            name="email"
-            placeholder="Your Email"
-        />
-        <ErrorMessage class="error" name="email"/>
+        <Field v-slot="{ field, errorMessage }" :rules="emailRules" name="email">
+          <InputText v-model="formData.email" placeholder="Your Email" type="email" v-bind="field" />
+        </Field>
+        <ErrorMessage class="error" name="email" />
       </div>
 
-      <!-- Contact Field (conditionally required) -->
-      <div class="form-group p-mb-4">
+      <!-- Contact Field -->
+      <div class="form-group m-4" v-if="formData.contactVia === 'Phone'">
         <label for="contact">Contact<span class="required">*</span></label>
-        <Field
-            id="contact"
-            v-model="formData.contact"
-            :rules="formData.contactVia === 'Phone' ? 'required|exactLength:10' : ''"
-            name="contact"
-            placeholder="Your Contact"
-        />
-        <ErrorMessage class="error" name="contact"/>
+        <Field v-slot="{ field, errorMessage }" :rules="contactRules" name="contact">
+          <InputText v-model="formData.contact" placeholder="Your Contact" v-bind="field" />
+        </Field>
+        <ErrorMessage class="error" name="contact" />
       </div>
 
       <!-- Address Field -->
-      <div class="form-group p-mb-4">
+      <div class="form-group m-4">
         <label for="address">Address<span class="required">*</span></label>
-        <Field
-            id="address"
-            v-model="formData.address"
-            name="address"
-            placeholder="Your Address"
-            rules="required|min:3"
-        />
-        <ErrorMessage class="error" name="address"/>
+        <Field v-slot="{ field, errorMessage }" name="address" rules="required|min:3">
+          <InputText v-model="formData.address" placeholder="Your Address" v-bind="field" />
+        </Field>
+        <ErrorMessage class="error" name="address" />
       </div>
 
       <!-- Message Field -->
-      <div class="form-group p-mb-4">
+      <div class="form-group m-4">
         <label for="message">Message<span class="required">*</span></label>
-        <Field
-            id="message"
-            v-model="formData.message"
-            name="message"
-            placeholder="Your Message"
-            rules="required|min:10"
-        />
-
-        <ErrorMessage class="error" name="message"/>
+        <Field v-slot="{ field, errorMessage }" name="message" rules="required|min:10">
+          <Textarea v-model="formData.message" placeholder="Your Message" rows="4" v-bind="field" />
+        </Field>
+        <ErrorMessage class="error" name="message" />
       </div>
 
-      <Button type="submit">Send Message</Button>
+      <!-- Submit Button -->
+      <Button type="submit" class="m-4">Send Message</Button>
     </Form>
   </section>
 </template>
-
-<script lang="ts" setup>
-import {onMounted, reactive, computed} from 'vue'
-import {Form, Field, ErrorMessage, defineRule, configure} from 'vee-validate'
-import {required, email, min} from '@vee-validate/rules'
-import axios from 'axios'
-import {useRouter} from 'vue-router'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { Form, Field, ErrorMessage, defineRule, configure } from 'vee-validate'
+import { required, email, min } from '@vee-validate/rules'
+import { useFetch } from '#app'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
-import TextArea from 'primevue/textarea'
 import Select from 'primevue/select'
+import Textarea from 'primevue/textarea'
 
 // Reactive form data
-const formData = reactive({
+const formData = ref({
   name: '',
   email: '',
   contact: '',
   address: '',
   message: '',
-  contactVia: '',
+  contactVia: ''
 })
 
-// Reactive options for dropdown
-const contactViaOptions = reactive<string[]>([])
+// Computed rules based on the contact method
+const emailRules = computed(() => {
+  return formData.value.contactVia === 'Email' ? 'required|email' : ''
+})
 
-// Fetching data for dropdown options
-const fetchContactViaOptions = async () => {
-  try {
-    const response = await axios.get('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
-    contactViaOptions.push(...response.data)
-  } catch (error) {
-    console.error('Error fetching data of contact via options:', error)
-  }
-}
+const contactRules = computed(() => {
+  return formData.value.contactVia === 'Phone' ? 'required|exactLength:10' : ''
+})
+
+// Fetch data using Nuxt's useFetch
+const { data: contactViaOptions, refresh: fetchContactViaOptions } = useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
 
 // Handle form submission
 const handleSubmit = async () => {
   try {
-    const response = await axios.post('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', formData)
-    alert(`Thank you, ${formData.name}! Your message has been sent.`)
-    // Clear form data
-    Object.keys(formData).forEach(key => (formData[key] = ''))
+    const { $axios } = useNuxtApp() // Use Nuxt's axios instance
+    const response = await $axios.post('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', formData.value)
+    console.log(response)
+    alert(`Thank you, ${formData.value.name}! Your message has been sent.`)
+
+    // Clear form data after submission
+    Object.keys(formData.value).forEach(key => (formData.value[key] = ''))
   } catch (error) {
     alert('An error occurred while sending your message. Please try again.')
   }
 }
 
+// Navigate to view contact page
 const router = useRouter()
 
 const navigateToViewContact = () => {
-  router.push({name: 'viewdetails'})
+  router.push({ name: 'viewdetails' })
 }
 
-// Define validation rules
+// Define VeeValidate rules
 defineRule('required', required)
 defineRule('email', email)
 defineRule('min', min)
 defineRule('lettersOnly', value => /^[a-zA-Z\s]+$/.test(value) || 'Name should contain only letters.')
-// Register custom rule for Contact
 defineRule('exactLength', (value: string, [length]: [number]) => {
-  const isNumeric = /^[0-9]+$/.test(value); // Ensure only digits
-  return isNumeric && value.length ==length || `Contact should be exactly ${length} digits.`;
-});
-
-// Custom contact rule to check for exactly 10 digits
-const exactLength = (value: string, [length]: [number]) => {
-  const isNumeric = /^[0-9]+$/.test(value); // Ensure only digits
-  if (!isNumeric) return 'Contact should contain only numbers.';
-  return value.length == length || `Contact should be exactly ${length} digits.`;
-};
+  const isNumeric = /^[0-9]+$/.test(value)
+  return isNumeric && value.length == length || `Contact should be exactly ${length} digits.`
+})
 
 // Configure VeeValidate
 configure({
@@ -179,91 +155,4 @@ configure({
     return messages[context.rule?.name] || `Invalid ${fieldName}.`
   }
 })
-
-onMounted(() => {
-  fetchContactViaOptions()
-})
 </script>
-
-<style scoped>
-.contact {
-  padding: 2rem;
-  background: #4861a1;
-  color: white;
-  text-align: center;
-}
-
-.contact h2 {
-  margin-top: 0;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.greet {
-  margin-bottom: 20px;
-  line-height: 1.5;
-}
-
-.contact-form {
-  max-width: 500px;
-  margin: 2rem auto;
-  padding: 1.5rem;
-  background: #031b34;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.form-group {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.form-group label {
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  color: #ecf0f1;
-}
-
-.form-group input,
-.form-group textarea {
-  padding: 0.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  color: #333;
-  background: whitesmoke;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: 2px solid #1abc9c;
-}
-
-button {
-  padding: 0.7rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #1abc9c;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background: dodgerblue;
-}
-
-.error {
-  color: rgba(255, 0, 0, 0.85);
-  font-size: 1rem;
-  margin-top: 0.5rem;
-}
-
-.required {
-  padding-left: 2px;
-  color: rgba(255, 0, 0, 0.85);
-}
-</style>

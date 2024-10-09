@@ -1,12 +1,8 @@
 <template>
-  <div>
-<index/>
+<NuxtPage/>
 
-  </div>
 </template>
-<script setup lang="ts">
-import Index from "~/pages/index.vue";
-</script>
+
 <style>
 body{
   margin:0;
