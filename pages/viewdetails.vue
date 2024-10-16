@@ -224,7 +224,7 @@ const updateContact = async () => {
     if (!updateError.value) {
       // Update the contact list with the new data
       contacts.value = contacts.value.map(contact =>
-          contact.id === editedContact.value!.id ? editedContact.value! : contact
+          contact.id === editedContact.value!.id ? editedContact.value! : contact  //! use for telling, it is not null, always has value
       );
       updateSuccess.value = 'Contact updated successfully!';
     } else {
