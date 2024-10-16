@@ -178,12 +178,12 @@ const contactViaOptions = reactive<string[]>([]);
 
 // Fetch contact data using useAsyncData
 const { data: contactData, pending: contactPending, error: contactError } = await useAsyncData('contacts', () =>
-    $fetch('/api/contacts')
+    $fetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts')
 );
 
 // Fetch contact via options using useAsyncData
 const { data: contactViaData, pending: contactViaPending, error: contactViaError } = await useAsyncData('contactVia', () =>
-    $fetch('/api/contacts/contactvia')
+    $fetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
 );
 
 // Watch the data to set contacts
