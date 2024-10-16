@@ -123,6 +123,7 @@ import { required, email, min } from '@vee-validate/rules';
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import InputText from "primevue/inputtext";
+import { useAsyncData } from 'nuxt/app';
 
 // Validation rules
 const emailRules = computed(() => {
@@ -150,17 +151,7 @@ defineRule('min', min);
 defineRule('lettersOnly', lettersOnly);
 defineRule('exactLength', exactLength);
 
-// Define types for the contact data
-interface Contact {
-  id: number;
-  name: string;
-  address: string;
-  contact: string;
-  email: string;
-  message: string;
-  contactVia: 'Email' | 'Phone';
-}
-
+// Configure vee-validate
 configure({
   validateOnInput: true,
   generateMessage: (context) => {
@@ -185,53 +176,26 @@ const editedContact = ref<Contact | null>(null);
 const updateSuccess = ref<string | null>(null);
 const contactViaOptions = reactive<string[]>([]);
 
-// Function to fetch contact data with delay
-const fetchContacts = async () => {
-  try {
-    const { data, error: fetchError } = await useFetch('/api/contacts');
-    if (fetchError.value) {
-      error.value = 'Failed to load contacts.';
-      console.error('Error fetching contacts:', fetchError.value);
-    } else {
-      contacts.value = data.value.result; //
-    }
-  } catch (err) {
-    error.value = 'Failed to load contacts.';
-    console.error('Error fetching contacts:', err);
-  } finally {
-    loading.value = false; // Set loading to false after request completes
-  }
-};
+// Fetch contact data using useAsyncData
+const { data: contactData, pending: contactPending, error: contactError } = await useAsyncData('contacts', () =>
+    $fetch('/api/contacts')
+);
 
-// Fetch contact data when the component is mounted
+// Fetch contact via options using useAsyncData
+const { data: contactViaData, pending: contactViaPending, error: contactViaError } = await useAsyncData('contactVia', () =>
+    $fetch('/api/contacts/contactvia')
+);
+
+// Watch the data to set contacts
 onMounted(() => {
-  setTimeout(() => {
-    loading.value = true;
-    fetchContacts();
-  }, 100);
-});
-
-// Function to fetch data from the backend for contact options
-const fetchContactViaOptions = async () => {
-  try {
-    const { data, error: fetchError } = await useFetch('/api/contacts/contactvia');
-    if (fetchError.value) {
-      console.error('Error fetching data of contact via options:', fetchError.value);
-    } else {
-      contactViaOptions.push(...data.value);
-    }
-  } catch (error) {
-    console.error('Error fetching data of contact via options:', error);
+  if (contactData.value) {
+    contacts.value = contactData.value.result;
   }
-};
-
-// Fetch contact via options on mounted
-onMounted(() => {
-  setTimeout(() => {
-    loading.value = true;
-    fetchContactViaOptions();
-  }, 100);
-
+  if (contactViaData.value) {
+    contactViaOptions.push(...contactViaData.value);
+  }
+  loading.value = contactPending.value;
+  error.value = contactError.value;
 });
 
 // Open the edit dialog and set the contact to be edited
@@ -251,8 +215,8 @@ const closeEditDialog = () => {
 const updateContact = async () => {
   if (editedContact.value) {
     try {
-      // Make a PUT request to update the contact using useFetch
-      await useFetch(`/api/contacts/${editedContact.value.id}`, {
+      // Make a PUT request to update the contact using $fetch
+      await $fetch(`/api/contacts/${editedContact.value.id}`, {
         method: 'PUT',
         body: editedContact.value,
       });
@@ -261,14 +225,12 @@ const updateContact = async () => {
       contacts.value = contacts.value.map(contact =>
           contact.id === editedContact.value!.id ? editedContact.value! : contact
       );
-      console.log('Updating contact with contactVia:', editedContact.value.contactVia);
-      console.log('Edited Contact:', editedContact.value);
-      updateSuccess.value = 'Contact updated successfully!'; // Set success message
+      updateSuccess.value = 'Contact updated successfully!';
     } catch (err) {
-      error.value = 'Failed to update contact.'; // Set error message if update fails
-      console.error('Error updating contact:', err); // Log error for debugging
+      error.value = 'Failed to update contact.';
+      console.error('Error updating contact:', err);
     } finally {
-      closeEditDialog(); // Close the edit dialog after update
+      closeEditDialog();
     }
   }
 };
@@ -276,19 +238,20 @@ const updateContact = async () => {
 // Handle delete contact
 const deleteContact = async (id: number) => {
   try {
-    // Make a DELETE request to remove the contact using useFetch
-    await useFetch(`/api/contacts/${id}`, {
+    // Make a DELETE request to remove the contact using $fetch
+    await $fetch(`/api/contacts/${id}`, {
       method: 'DELETE',
     });
 
     // Remove the deleted contact from the list
     contacts.value = contacts.value.filter(contact => contact.id !== id);
   } catch (err) {
-    error.value = 'Failed to delete contact.'; // Set error message if delete fails
-    console.error('Error deleting contact:', err); // Log error for debugging
+    error.value = 'Failed to delete contact.';
+    console.error('Error deleting contact:', err);
   }
 };
 </script>
+
 
 <style scoped>
 .error {
