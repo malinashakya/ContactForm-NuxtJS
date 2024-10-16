@@ -214,42 +214,46 @@ const closeEditDialog = () => {
 // Update contact details
 const updateContact = async () => {
   if (editedContact.value) {
-    try {
-      // Make a PUT request to update the contact using $fetch
-      await $fetch(`/api/contacts/${editedContact.value.id}`, {
-        method: 'PUT',
-        body: editedContact.value,
-      });
+    const { error: updateError } = await useAsyncData(`update-contact-${editedContact.value.id}`, () =>
+        $fetch(`/api/contacts/${editedContact.value!.id}`, {
+          method: 'PUT',
+          body: editedContact.value,
+        })
+    );
 
+    if (!updateError.value) {
       // Update the contact list with the new data
       contacts.value = contacts.value.map(contact =>
           contact.id === editedContact.value!.id ? editedContact.value! : contact
       );
       updateSuccess.value = 'Contact updated successfully!';
-    } catch (err) {
+    } else {
       error.value = 'Failed to update contact.';
-      console.error('Error updating contact:', err);
-    } finally {
-      closeEditDialog();
+      console.error('Error updating contact:', updateError.value);
     }
+
+    // Close the dialog once the operation is complete
+    closeEditDialog();
   }
 };
 
 // Handle delete contact
 const deleteContact = async (id: number) => {
-  try {
-    // Make a DELETE request to remove the contact using $fetch
-    await $fetch(`/api/contacts/${id}`, {
-      method: 'DELETE',
-    });
+  const {error: deleteError } = await useAsyncData(`delete-contact-${id}`, () =>
+      $fetch(`/api/contacts/${id}`, {
+        method: 'DELETE',
+      })
+  );
 
+  if (!deleteError.value) {
     // Remove the deleted contact from the list
     contacts.value = contacts.value.filter(contact => contact.id !== id);
-  } catch (err) {
+  } else {
     error.value = 'Failed to delete contact.';
-    console.error('Error deleting contact:', err);
+    console.error('Error deleting contact:', deleteError.value);
   }
 };
+
 </script>
 
 
