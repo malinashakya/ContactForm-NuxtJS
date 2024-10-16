@@ -227,7 +227,11 @@ const fetchContactViaOptions = async () => {
 
 // Fetch contact via options on mounted
 onMounted(() => {
-  fetchContactViaOptions();
+  setTimeout(() => {
+    loading.value = true;
+    fetchContactViaOptions();
+  }, 100);
+
 });
 
 // Open the edit dialog and set the contact to be edited
