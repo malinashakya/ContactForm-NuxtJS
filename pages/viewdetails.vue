@@ -214,7 +214,7 @@ onMounted(() => {
 // Function to fetch data from the backend for contact options
 const fetchContactViaOptions = async () => {
   try {
-    const { data, error: fetchError } = await useFetch('/api/contacts/contactvia');
+    const { data, error: fetchError } = await useFetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
     if (fetchError.value) {
       console.error('Error fetching data of contact via options:', fetchError.value);
     } else {

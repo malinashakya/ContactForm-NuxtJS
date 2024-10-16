@@ -5,7 +5,7 @@
         <h2>Login Form</h2>
         <div class="p-field mb-3">
           <label for="username">Username</label>
-          <InputText id="usernam  e" v-model="username" placeholder="Username"/>
+          <InputText id="username" v-model="username" placeholder="Username"/>
         </div>
         <div class="p-field mb-3">
           <label for="password">Password</label>
@@ -21,7 +21,7 @@
 <script setup>
 import {ref} from 'vue';
 import {useRouter} from 'vue-router';
-import {useFetch} from '#app'; // Import useFetch
+import {useFetch} from '#app';
 
 // State
 const username = ref('');
@@ -48,7 +48,7 @@ const login = async () => {
     if (error.value || data.value.success === 'false') {
       errorMessage.value = 'Invalid credentials. Please try again.';
     } else {
-      router.push({name: 'viewdetails'});
+      router.push({name: 'index'});
     }
   } catch (err) {
     errorMessage.value = 'An error occurred. Please try again.';

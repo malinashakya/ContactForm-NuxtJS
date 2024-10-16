@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { Form, Field, ErrorMessage, defineRule, configure } from 'vee-validate';
 import { required, email, min } from '@vee-validate/rules';
@@ -90,7 +90,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
-import { useFetch } from '#app'; // Import useFetch
+import { useAsyncData } from '#app';
 
 // Reactive form data
 const formData = ref({
@@ -105,39 +105,22 @@ const formData = ref({
 // Reactive state for contact via options and loading
 const contactViaOptions = ref([]);
 const fetchError = ref(null);
-const isLoading = ref(true);
 
-// Function to fetch contact via options
-const fetchContactViaOptions = async () => {
-  try {
-    isLoading.value = true; // Set loading state to true
-
-    // Fetch contact via options
-    const { data, error } = await useFetch('/api/contacts/contactvia', {
-      method: 'GET',
-    });
-
-    if (error.value) {
-      fetchError.value = error.value;
-      console.error('Error fetching contact methods:', error.value);
-    } else if (data.value) {
-      contactViaOptions.value = data.value || []; // Ensure that fetched data is not null
-      console.log('Fetched options:', data.value);
-    }
-  } catch (err) {
-    console.error('Error fetching contact methods:', err);
-    fetchError.value = 'Error fetching contact methods. Please try again later.';
-  } finally {
-    isLoading.value = false; // Set loading state to false after fetching
-  }
-};
-
-// Fetch contact via options on mounted with a 2-second delay
-onMounted(() => {
-  setTimeout(() => {
-    fetchContactViaOptions();
-  }, 100); // 100 milliseconds (0.1seconds)
+// Fetch contact via options using useAsyncData
+const { data: options, error } = await useAsyncData('contact-via-options', async () => {
+    const response = await $fetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
+    console.log(response)
+  return response; // return the fetched data
 });
+
+// Error handling
+if (error.value) {
+  fetchError.value = error.value;
+  console.error('Error fetching contact methods:', error.value);
+} else {
+  contactViaOptions.value = options.value || []; // Ensure that fetched data is not null
+}
+
 // Computed rules based on the contact method
 const emailRules = computed(() => {
   return formData.value.contactVia === 'Email' ? 'required|email' : '';
@@ -150,9 +133,12 @@ const contactRules = computed(() => {
 // Handle form submission
 const handleSubmit = async () => {
   try {
-    const { data, error } = await useFetch('/api/contacts', {
-      method: 'POST',
-      body: formData.value, // Pass the form data
+    // Use useAsyncData for submitting data
+    const { data, error } = await useAsyncData('submit-contact-form', async () => {
+      return await $fetch('/api/contacts', {
+        method: 'POST',
+        body: formData.value, // Pass the form data
+      });
     });
 
     if (error.value) {
