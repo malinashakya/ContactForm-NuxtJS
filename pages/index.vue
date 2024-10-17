@@ -13,10 +13,11 @@
       <!-- Name Field -->
       <div class="form-group m-4">
         <label for="name">Name<span class="required">*</span></label>
-        <Field v-slot="{ field }" name="name" rules="required|min:2|lettersOnly">
-          <InputText v-model="formData.name" placeholder="Your Name" v-bind="field" class="full" />
+        <Field v-slot="{ field }" name="name">
+          <InputText v-model="formData.name" class="full" placeholder="Your Name" v-bind="field"/>
         </Field>
-        <ErrorMessage class="error" name="name" />
+        <ErrorMessage class="error" name="name"/>
+        <p v-if="serverErrors.name" class="error">{{ serverErrors.name }}</p>
       </div>
 
       <!-- Contact Via Field -->
@@ -36,61 +37,66 @@
             <p>Loading options...</p> <!-- Display while loading -->
           </template>
         </Field>
-        <ErrorMessage class="error" name="contactVia" />
+        <ErrorMessage class="error" name="contactVia"/>
+        <p v-if="serverErrors.contactVia" class="error">{{ serverErrors.contactVia }}</p>
       </div>
 
       <!-- Email Field -->
-      <div class="form-group m-4" v-if="formData.contactVia === 'Email'">
+      <div v-if="formData.contactVia === 'Email'" class="form-group m-4">
         <label for="email">Email<span class="required">*</span></label>
         <Field v-slot="{ field }" :rules="emailRules" name="email">
-          <InputText v-model="formData.email" placeholder="Your Email" type="email" v-bind="field" />
+          <InputText v-model="formData.email" placeholder="Your Email" type="email" v-bind="field"/>
         </Field>
-        <ErrorMessage class="error" name="email" />
+        <ErrorMessage class="error" name="email"/>
+        <p v-if="serverErrors.email" class="error">{{ serverErrors.email }}</p>
       </div>
 
       <!-- Contact Field -->
-      <div class="form-group m-4" v-if="formData.contactVia === 'Phone'">
+      <div v-if="formData.contactVia === 'Phone'" class="form-group m-4">
         <label for="contact">Contact<span class="required">*</span></label>
         <Field v-slot="{ field }" :rules="contactRules" name="contact">
-          <InputText v-model="formData.contact" placeholder="Your Contact" v-bind="field" />
+          <InputText v-model="formData.contact" placeholder="Your Contact" v-bind="field"/>
         </Field>
-        <ErrorMessage class="error" name="contact" />
+        <ErrorMessage class="error" name="contact"/>
+        <p v-if="serverErrors.contact" class="error">{{ serverErrors.contact }}</p>
       </div>
 
       <!-- Address Field -->
       <div class="form-group m-4">
         <label for="address">Address<span class="required">*</span></label>
         <Field v-slot="{ field }" name="address" rules="required|min:3">
-          <InputText v-model="formData.address" placeholder="Your Address" v-bind="field" />
+          <InputText v-model="formData.address" placeholder="Your Address" v-bind="field"/>
         </Field>
-        <ErrorMessage class="error" name="address" />
+        <ErrorMessage class="error" name="address"/>
+        <p v-if="serverErrors.address" class="error">{{ serverErrors.address }}</p>
       </div>
 
       <!-- Message Field -->
       <div class="form-group m-4">
         <label for="message">Message<span class="required">*</span></label>
         <Field v-slot="{ field }" name="message" rules="required|min:10">
-          <Textarea v-model="formData.message" placeholder="Your Message" rows="4" v-bind="field" />
+          <Textarea v-model="formData.message" placeholder="Your Message" rows="4" v-bind="field"/>
         </Field>
-        <ErrorMessage class="error" name="message" />
+        <ErrorMessage class="error" name="message"/>
+        <p v-if="serverErrors.message" class="error">{{ serverErrors.message }}</p>
       </div>
 
       <!-- Submit Button -->
-      <Button type="submit" class="m-4">Send Message</Button>
+      <Button class="m-4" type="submit">Send Message</Button>
     </Form>
   </section>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { Form, Field, ErrorMessage, defineRule, configure } from 'vee-validate';
-import { required, email, min } from '@vee-validate/rules';
+<script lang="ts" setup>
+import {ref, computed} from 'vue';
+import {useRouter} from 'vue-router';
+import {Form, Field, ErrorMessage, defineRule, configure} from 'vee-validate';
+import {required, email, min} from '@vee-validate/rules';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
-import { useAsyncData } from '#app';
+import {useAsyncData} from '#app';
 
 // Reactive form data
 const formData = ref({
@@ -105,11 +111,11 @@ const formData = ref({
 // Reactive state for contact via options and loading
 const contactViaOptions = ref([]);
 const fetchError = ref(null);
+const serverErrors = ref({}); // Reactive object to store server-side errors
 
 // Fetch contact via options using useAsyncData
-const { data: options, error } = await useAsyncData('contact-via-options', async () => {
-    const response = await $fetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
-    console.log(response)
+const {data: options, error} = await useAsyncData('contact-via-options', async () => {
+  const response = await $fetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
   return response; // return the fetched data
 });
 
@@ -133,19 +139,24 @@ const contactRules = computed(() => {
 // Handle form submission
 const handleSubmit = async () => {
   try {
+    // Reset server errors before submission
+    serverErrors.value = {};
+
     // Use useAsyncData for submitting data
-    const { data, error } = await useAsyncData('submit-contact-form', async () => {
+    const {data} = await useAsyncData('submit-contact-form', async () => {
       return await $fetch('/api/contacts', {
         method: 'POST',
         body: formData.value, // Pass the form data
       });
     });
 
-    if (error.value) {
-      throw new Error(error.value.message);
-    }
+    // Handle server-side validation errors
 
-    console.log(data.value);
+    console.log(data.value.code)
+    if (data.value.code == 400 && data.value.result) {
+      handleServerValidationErrors(data.value.result);
+      return; // Stop further execution to prevent success alert
+    }
     alert(`Thank you, ${formData.value.name}! Your message has been sent.`);
 
     // Clear form data after submission
@@ -156,10 +167,52 @@ const handleSubmit = async () => {
   }
 };
 
+// Function to handle server-side validation errors
+const handleServerValidationErrors = (errors) => {
+  // Clear previous server errors
+  serverErrors.value = {};
+
+  if (errors.error) {
+    const violationMessages = extractViolationMessages(errors.error);
+    violationMessages.forEach((message) => {
+      if (message.includes('Address')) {
+        serverErrors.value.address = message;
+      }
+      if (message.includes('Name')) {
+        serverErrors.value.name = message;
+      }
+      if (message.includes('Email')) {
+        serverErrors.value.email = message;
+      }
+      if (message.includes('Contact')) {
+        serverErrors.value.contact = message;
+      }
+      if (message.includes('Message')) {
+        serverErrors.value.message = message;
+      }
+    });
+  }
+};
+
+
+// Helper function to extract messages from the error string
+const extractViolationMessages = (errorString) => {
+  const regex = /ConstraintViolationImpl\{interpolatedMessage='(.*?)'/g; // Regex to match messages
+  let messages = [];
+  let match;
+
+  // Loop through matches and extract the messages
+  while ((match = regex.exec(errorString)) !== null) {
+    messages.push(match[1]); // Push the message into the array
+  }
+
+  return messages;
+};
+
 // Navigate to view contact page
 const router = useRouter();
 const navigateToViewContact = () => {
-  router.push({ name: 'viewdetails' });
+  router.push({name: 'viewdetails'});
 };
 
 // Define VeeValidate rules
