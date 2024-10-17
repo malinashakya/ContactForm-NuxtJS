@@ -114,16 +114,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, reactive, computed } from 'vue';
+import {ref, onMounted, reactive, computed} from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
-import { ErrorMessage, Field, Form, defineRule, configure } from 'vee-validate';
-import { required, email, min } from '@vee-validate/rules';
+import {ErrorMessage, Field, Form, defineRule, configure} from 'vee-validate';
+import {required, email, min} from '@vee-validate/rules';
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import InputText from "primevue/inputtext";
-import {fetchData,postData,deleteContact} from '@/utils/api';
+import {fetchData, postData, deleteData} from '@/utils/api';
 
 // Validation rules
 const emailRules = computed(() => {
@@ -178,7 +178,11 @@ const contactViaOptions = reactive<string[]>([]);
 
 
 // Fetch contact data using the fetchData method
-const { data: contactData,pending: contactPending, error: contactError } = await fetchData('contacts', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts');
+const {
+  data: contactData,
+  pending: contactPending,
+  error: contactError
+} = await fetchData('contacts', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts');
 if (contactError.value) {
   console.error('Failed to fetch contact data:', contactError.value);
 } else {
@@ -186,7 +190,10 @@ if (contactError.value) {
 }
 
 // Fetch contact via options using fetchData method
-const { data: contactViaData, pending: contactViaPending, error: contactViaError } = await fetchData('contactVia','http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
+const {
+  data: contactViaData,
+  error: contactViaError
+} = await fetchData('contactVia', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
 if (contactViaError.value) {
   console.error('Failed to fetch contact data:', contactError.value);
 } else {
@@ -207,7 +214,7 @@ onMounted(() => {
 
 // Open the edit dialog and set the contact to be edited
 const openEditDialog = (contact: Contact) => {
-  editedContact.value = { ...contact };
+  editedContact.value = {...contact};
   showEditDialog.value = true;
 };
 
@@ -221,7 +228,7 @@ const closeEditDialog = () => {
 // Update contact details
 const updateContact = async () => {
   if (editedContact.value) {
-    const { error: updateError } = await postData(
+    const {error: updateError} = await postData(
         `update-contact-${editedContact.value.id}`,
         `/api/contacts/${editedContact.value.id}`,
         'PUT',
@@ -246,7 +253,7 @@ const updateContact = async () => {
 
 // Handle delete contact
 const handleDeleteContact = async (id: number) => {
-  const { data, error: deleteError } = await deleteContact(`delete-contact-${id}`, id);
+  const {error: deleteError} = await deleteData(`delete-contact-${id}`, id);
 
   if (!deleteError.value) {
     // Remove the deleted contact from the list
@@ -257,10 +264,7 @@ const handleDeleteContact = async (id: number) => {
   }
 };
 
-
-
 </script>
-
 
 <style scoped>
 

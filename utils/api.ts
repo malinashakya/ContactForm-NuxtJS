@@ -1,6 +1,14 @@
-// utils/api.ts
-import { useAsyncData } from '#app'; // Nuxt 3 specific hook for data fetching
+import { useAsyncData } from '#app';
 
+// For understanding the generic method
+// const updateContact = async () => {
+//     if (editedContact.value) {
+//         const { error: updateError } = await useAsyncData(update-contact-${editedContact.value.id}, () =>
+//             $fetch(/api/contacts/${editedContact.value!.id}, {
+//             method: 'PUT',
+//                 body: editedContact.value,
+//         })
+//     )
 
 //GET method
 export const fetchData=async(key: string, url: string)=>{
@@ -29,7 +37,7 @@ export const postData=async(key:string, url:string, method:string,body:any)=>{
 }
 
 //DELETE method
-export const deleteContact = async (key: string, id: number) => {
+export const deleteData = async (key: string, id: number) => {
     const { data, error } = await useAsyncData(key, async () => {
         return await $fetch(`/api/contacts/${id}`, {
             method: 'DELETE',

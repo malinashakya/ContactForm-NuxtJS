@@ -109,8 +109,7 @@ const formData = ref({
 });
 
 // Reactive state for contact via options and loading
-const serverErrors = ref({}); // Reactive object to store server-side errors
-// Fetching 'contact-via-options'
+const serverErrors = ref({});
 
 const {data: contactViaOptions,error} = await fetchData(
     'contact-via-options',
