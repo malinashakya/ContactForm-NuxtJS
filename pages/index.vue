@@ -195,14 +195,12 @@ const handleServerValidationErrors = (errors) => {
       if (message.includes('Message')) {
         serverErrors.value.message = message;
       }
-
     });
 
   }
 };
 
-
-// Helper function to extract messages from the error string
+// Helper function to extract messages from the error string i.e. JSON output we are getting when we test API
 const extractViolationMessages = (errorString) => {
   const regex = /ConstraintViolationImpl\{interpolatedMessage='(.*?)'/g; // Regex to match messages
   let messages = [];
@@ -212,7 +210,6 @@ const extractViolationMessages = (errorString) => {
   while ((match = regex.exec(errorString)) !== null) {
     messages.push(match[1]); // Push the message into the array
   }
-
   return messages;
 };
 
@@ -250,7 +247,5 @@ configure({
 </script>
 
 <style scoped>
-.error {
-  color: red;
-}
+
 </style>

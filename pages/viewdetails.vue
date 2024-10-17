@@ -258,7 +258,5 @@ const deleteContact = async (id: number) => {
 
 
 <style scoped>
-.error {
-  color: rgba(255, 0, 0, 0.85);
-}
+
 </style>
