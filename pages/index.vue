@@ -146,7 +146,7 @@ const handleSubmit = async () => {
     const {data} = await useAsyncData('submit-contact-form', async () => {
       return await $fetch('/api/contacts', {
         method: 'POST',
-        body: formData.value, // Pass the form data
+        body: formData.value,
       });
     });
 
@@ -173,6 +173,11 @@ const handleServerValidationErrors = (errors) => {
   serverErrors.value = {};
 
   if (errors.error) {
+    console.log(errors.error)
+    if (errors.error.includes('ConstraintViolationException')) {
+      alert('A database error occurred. Make sure you have not submitted email or contact before'); // Alert for generic database error
+      return;
+    }
     const violationMessages = extractViolationMessages(errors.error);
     violationMessages.forEach((message) => {
       if (message.includes('Address')) {
@@ -190,7 +195,9 @@ const handleServerValidationErrors = (errors) => {
       if (message.includes('Message')) {
         serverErrors.value.message = message;
       }
+
     });
+
   }
 };
 
