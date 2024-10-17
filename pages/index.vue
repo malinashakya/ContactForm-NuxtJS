@@ -97,6 +97,7 @@ import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import {useAsyncData} from '#app';
+import {fetchData} from '@/utils/api';
 
 // Reactive form data
 const formData = ref({
@@ -109,23 +110,23 @@ const formData = ref({
 });
 
 // Reactive state for contact via options and loading
-const contactViaOptions = ref([]);
 const fetchError = ref(null);
 const serverErrors = ref({}); // Reactive object to store server-side errors
 
-// Fetch contact via options using useAsyncData
-const {data: options, error} = await useAsyncData('contact-via-options', async () => {
-  const response = await $fetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
-  return response; // return the fetched data
-});
+// Fetching 'contact-via-options'
 
-// Error handling
+const {data: contactViaOptions, error} = await fetchData(
+    'contact-via-options',
+    'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia'
+);
+
 if (error.value) {
-  fetchError.value = error.value;
   console.error('Error fetching contact methods:', error.value);
 } else {
-  contactViaOptions.value = options.value || []; // Ensure that fetched data is not null
+  // Use contactViaOptions
+  console.log('Fetched options:', contactViaOptions.value);
 }
+
 
 // Computed rules based on the contact method
 const emailRules = computed(() => {
@@ -143,12 +144,12 @@ const handleSubmit = async () => {
     serverErrors.value = {};
 
     // Use useAsyncData for submitting data
-    const {data} = await useAsyncData('submit-contact-form', async () => {
-      return await $fetch('/api/contacts', {
-        method: 'POST',
-        body: formData.value,
-      });
-    });
+    const {data, error} = await postData(
+        'submit-contact-form',                // Key for caching the request
+        '/api/contacts',                      // The API endpoint
+        'POST',                               // HTTP method
+        formData.value                        // The form data to be sent
+    );
 
     // Handle server-side validation errors
 
