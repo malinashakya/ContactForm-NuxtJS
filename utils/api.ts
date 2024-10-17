@@ -14,7 +14,7 @@ export const fetchData=async(key: string, url: string)=>{
     return {data, pending,error};
  }
 
-//POST method
+//POST and PUT method
 export const postData=async(key:string, url:string, method:string,body:any)=>{
     const {data,error}=await useAsyncData(key,async ()=>{
         return await $fetch(url,{
@@ -27,4 +27,20 @@ export const postData=async(key:string, url:string, method:string,body:any)=>{
     }
     return {data,error};
 }
+
+//DELETE method
+export const deleteContact = async (key: string, id: number) => {
+    const { data, error } = await useAsyncData(key, async () => {
+        return await $fetch(`/api/contacts/${id}`, {
+            method: 'DELETE',
+        });
+    });
+
+    if (error.value) {
+        console.error(`Error deleting data from /api/contacts/${id}:`, error.value);
+    }
+
+    return { data, error };
+};
+
 

@@ -25,7 +25,7 @@
 
             <!-- Button to delete a contact -->
             <Button class="m-2 p-2" style="background: red; border: 1px solid #e35555; border-radius: 3px"
-                    @click="deleteContact(slotProps.data.id)">Delete
+                    @click="handleDeleteContact(slotProps.data.id)">Delete
             </Button>
           </template>
         </Column>
@@ -123,7 +123,7 @@ import { required, email, min } from '@vee-validate/rules';
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import InputText from "primevue/inputtext";
-import { useAsyncData } from 'nuxt/app';
+import {fetchData,postData,deleteContact} from '@/utils/api';
 
 // Validation rules
 const emailRules = computed(() => {
@@ -245,12 +245,8 @@ const updateContact = async () => {
 };
 
 // Handle delete contact
-const deleteContact = async (id: number) => {
-  const {error: deleteError } = await useAsyncData(`delete-contact-${id}`, () =>
-      $fetch(`/api/contacts/${id}`, {
-        method: 'DELETE',
-      })
-  );
+const handleDeleteContact = async (id: number) => {
+  const { data, error: deleteError } = await deleteContact(`delete-contact-${id}`, id);
 
   if (!deleteError.value) {
     // Remove the deleted contact from the list
@@ -260,6 +256,8 @@ const deleteContact = async (id: number) => {
     console.error('Error deleting contact:', deleteError.value);
   }
 };
+
+
 
 </script>
 
