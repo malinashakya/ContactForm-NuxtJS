@@ -176,15 +176,22 @@ const editedContact = ref<Contact | null>(null);
 const updateSuccess = ref<string | null>(null);
 const contactViaOptions = reactive<string[]>([]);
 
-// Fetch contact data using useAsyncData
-const { data: contactData, pending: contactPending, error: contactError } = await useAsyncData('contacts', () =>
-    $fetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts')
-);
 
-// Fetch contact via options using useAsyncData
-const { data: contactViaData, pending: contactViaPending, error: contactViaError } = await useAsyncData('contactVia', () =>
-    $fetch('http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia')
-);
+// Fetch contact data using the fetchData method
+const { data: contactData,pending: contactPending, error: contactError } = await fetchData('contacts', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts');
+if (contactError.value) {
+  console.error('Failed to fetch contact data:', contactError.value);
+} else {
+  console.log('Contact data fetched successfully:', contactData.value);
+}
+
+// Fetch contact via options using fetchData method
+const { data: contactViaData, pending: contactViaPending, error: contactViaError } = await fetchData('contactVia','http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
+if (contactViaError.value) {
+  console.error('Failed to fetch contact data:', contactError.value);
+} else {
+  console.log('Contact data fetched successfully:', contactData.value);
+}
 
 // Watch the data to set contacts
 onMounted(() => {
@@ -214,11 +221,11 @@ const closeEditDialog = () => {
 // Update contact details
 const updateContact = async () => {
   if (editedContact.value) {
-    const { error: updateError } = await useAsyncData(`update-contact-${editedContact.value.id}`, () =>
-        $fetch(`/api/contacts/${editedContact.value!.id}`, {
-          method: 'PUT',
-          body: editedContact.value,
-        })
+    const { error: updateError } = await postData(
+        `update-contact-${editedContact.value.id}`,
+        `/api/contacts/${editedContact.value.id}`,
+        'PUT',
+        editedContact.value
     );
 
     if (!updateError.value) {

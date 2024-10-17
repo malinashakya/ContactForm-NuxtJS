@@ -96,8 +96,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
-import {useAsyncData} from '#app';
-import {fetchData} from '@/utils/api';
+import {fetchData,postData} from '@/utils/api';
 
 // Reactive form data
 const formData = ref({
@@ -110,12 +109,10 @@ const formData = ref({
 });
 
 // Reactive state for contact via options and loading
-const fetchError = ref(null);
 const serverErrors = ref({}); // Reactive object to store server-side errors
-
 // Fetching 'contact-via-options'
 
-const {data: contactViaOptions, error} = await fetchData(
+const {data: contactViaOptions,error} = await fetchData(
     'contact-via-options',
     'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia'
 );
@@ -126,7 +123,6 @@ if (error.value) {
   // Use contactViaOptions
   console.log('Fetched options:', contactViaOptions.value);
 }
-
 
 // Computed rules based on the contact method
 const emailRules = computed(() => {
@@ -144,7 +140,7 @@ const handleSubmit = async () => {
     serverErrors.value = {};
 
     // Use useAsyncData for submitting data
-    const {data, error} = await postData(
+    const {data} = await postData(
         'submit-contact-form',                // Key for caching the request
         '/api/contacts',                      // The API endpoint
         'POST',                               // HTTP method
@@ -156,7 +152,7 @@ const handleSubmit = async () => {
     console.log(data.value.code)
     if (data.value.code == 400 && data.value.result) {
       handleServerValidationErrors(data.value.result);
-      return; // Stop further execution to prevent success alert
+      return;
     }
     alert(`Thank you, ${formData.value.name}! Your message has been sent.`);
 

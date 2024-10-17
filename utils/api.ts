@@ -1,16 +1,17 @@
 // utils/api.ts
 import { useAsyncData } from '#app'; // Nuxt 3 specific hook for data fetching
 
+
 //GET method
 export const fetchData=async(key: string, url: string)=>{
-    const {data,error}=await useAsyncData(key, async()=>{
+    const {data,pending,error}=await useAsyncData(key, async()=>{
         const response=await $fetch(url);
         return response;
     });
     if(error.value){
         console.error(`Error fetching data from ${url}`);
             }
-    return {data, error};
+    return {data, pending,error};
  }
 
 //POST method
