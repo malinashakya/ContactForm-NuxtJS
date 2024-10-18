@@ -21,7 +21,7 @@
           <template #body="slotProps">
             <!-- Button to open the view dialog for a contact -->
             <Button class="mr-3" icon="pi pi-eye" severity="info"
-            @click="openViewDialog(slotProps.data)"/>
+                    @click="openViewDialog(slotProps.data)"/>
             <!-- Button to open the edit dialog for a contact -->
             <Button class="mr-3" icon="pi pi-user-edit" severity="warn"
                     @click="openEditDialog(slotProps.data)"/>
@@ -33,7 +33,7 @@
       </DataTable>
     </div>
 
-<!--    View Dialog-->
+    <!--    View Dialog-->
     <Dialog v-model:visible="showViewDialog" :style="{width:'30vw'}" header="Contact Details">
       <div v-if="selectedContact">
         <p><strong>ID:</strong> {{ selectedContact.id }}</p>
@@ -43,9 +43,10 @@
         <p><strong>Contact Via:</strong> {{ selectedContact.contactVia }}</p>
         <p><strong>Email:</strong> {{ selectedContact.email }}</p>
         <p><strong>Message:</strong> {{ selectedContact.message }}</p>
-      <Button label="Download" icon="pi pi-download" severity="success" @click="downloadPDF"/>
+        <Button class="mr-3" icon="pi pi-download" label="Download" @click="downloadPDF"/>
+        <Button icon="pi pi-table" label="Download" @click="downloadPDFTable"/>
       </div>
-          </Dialog>
+    </Dialog>
     <!-- Edit Dialog -->
     <Dialog v-model:visible="showEditDialog"
             :style="{ width: '30vw', background:'grey', padding:'10px',border: '1px solid grey' } "
@@ -62,13 +63,13 @@
             </Field>
             <ErrorMessage class="error" name="name"/>
           </div>
-          </div>
+        </div>
 
-          <!-- Contact Via Field -->
-          <div class="form-row m-4">
-            <label for="contactVia">Contact Via<span class="required">*</span></label>
-            <div>
-              <Field v-slot="{ field }" name="contactVia" rules="required">
+        <!-- Contact Via Field -->
+        <div class="form-row m-4">
+          <label for="contactVia">Contact Via<span class="required">*</span></label>
+          <div>
+            <Field v-slot="{ field }" name="contactVia" rules="required">
               <Select
                   id="contactVia"
                   v-model="editedContact.contactVia"
@@ -77,56 +78,57 @@
                   v-bind="field"
               />
             </Field>
-            </div>
-            <ErrorMessage class="error" name="contactVia"/>
           </div>
+          <ErrorMessage class="error" name="contactVia"/>
+        </div>
 
-          <!-- Email Field -->
-          <div v-if="editedContact.contactVia === 'Email'" class="form-row m-4">
-            <label for="email">Email<span class="required">*</span></label>
-            <div>
+        <!-- Email Field -->
+        <div v-if="editedContact.contactVia === 'Email'" class="form-row m-4">
+          <label for="email">Email<span class="required">*</span></label>
+          <div>
             <Field v-slot="{ field }" :rules="emailRules" name="email">
               <InputText v-model="editedContact.email" placeholder="Your Email" type="email" v-bind="field"/>
             </Field>
             <ErrorMessage class="error" name="email"/>
           </div>
-          </div>
+        </div>
 
-          <!-- Contact Field -->
-          <div v-if="editedContact.contactVia === 'Phone'" class="form-row m-4">
-            <label for="contact">Contact<span class="required">*</span></label>
-            <div><Field v-slot="{ field }" :rules="contactRules" name="contact">
+        <!-- Contact Field -->
+        <div v-if="editedContact.contactVia === 'Phone'" class="form-row m-4">
+          <label for="contact">Contact<span class="required">*</span></label>
+          <div>
+            <Field v-slot="{ field }" :rules="contactRules" name="contact">
               <InputText v-model="editedContact.contact" placeholder="Your Contact" v-bind="field"/>
             </Field>
             <ErrorMessage class="error" name="contact"/>
           </div>
-          </div>
+        </div>
 
-          <div class="form-row p-mb-4">
-            <label for="address">Address<span class="required">*</span></label>
-            <div>
+        <div class="form-row p-mb-4">
+          <label for="address">Address<span class="required">*</span></label>
+          <div>
             <Field v-slot="{ field, errorMessage }" v-model="editedContact.address" name="address"
                    rules="required|min:3">
               <InputText placeholder="Your Address" v-bind="field"/>
             </Field>
             <ErrorMessage class="error" name="address"/>
           </div>
-          </div>
+        </div>
 
-          <div class="form-row p-mb-4">
-            <label for="message">Message<span class="required">*</span></label>
-            <div>
+        <div class="form-row p-mb-4">
+          <label for="message">Message<span class="required">*</span></label>
+          <div>
             <Field v-slot="{ field, errorMessage }" v-model="editedContact.message" name="message"
                    rules="required|min:10">
               <Textarea placeholder="Your Message" rows="4" v-bind="field"/>
             </Field>
             <ErrorMessage class="error" name="message"/>
           </div>
-          </div>
+        </div>
 
-          <Button class="mr-3" icon="pi pi-pencil" label="Update" severity="warn" type="submit"/>
-          <Button icon="pi pi-times" label="Cancel" severity="danger"
-                  @click="closeEditDialog"/>
+        <Button class="mr-3" icon="pi pi-pencil" label="Update" severity="warn" type="submit"/>
+        <Button icon="pi pi-times" label="Cancel" severity="danger"
+                @click="closeEditDialog"/>
       </Form>
 
       <div v-if="updateSuccess" class="success-message mt-2">{{ updateSuccess }}</div>
@@ -145,8 +147,9 @@ import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import InputText from "primevue/inputtext";
 import {getData, putData, deleteData} from '@/utils/api';
-import * as jspdf from "jspdf";
 import jsPDF from "jspdf";
+import 'jspdf-autotable';
+import tab from "primevue/tab/Tab.vue";
 
 // Validation rules
 const emailRules = computed(() => {
@@ -198,8 +201,8 @@ const showEditDialog = ref(false);
 const editedContact = ref<Contact | null>(null);
 const updateSuccess = ref<string | null>(null);
 const contactViaOptions = reactive<string[]>([]);
-const showViewDialog=ref(false);
-const selectedContact=ref<Contact|null>(null);
+const showViewDialog = ref(false);
+const selectedContact = ref<Contact | null>(null);
 
 // Fetch contact data using the getData method
 const {data: contactData, pending: contactPending, error: contactError} =
@@ -293,10 +296,9 @@ const handleDeleteContact = async (id: number) => {
 };
 
 //Download as PDF
-const downloadPDF=()=>{
-  if(selectedContact.value)
-  {
-    const doc=new jsPDF();
+const downloadPDF = () => {
+  if (selectedContact.value) {
+    const doc = new jsPDF();
     doc.setFontSize(20);
     doc.text("Contact Details", 10, 10); // x-axis=10, y-axis=10
 
@@ -313,6 +315,36 @@ const downloadPDF=()=>{
     doc.save(`contact_${selectedContact.value.id}.pdf`);
   }
 }
+
+//Download PDF in table format
+const downloadPDFTable = () => {
+  if (selectedContact.value) {
+    const doc = new jsPDF();
+
+    doc.setFontSize(20);
+    doc.text("Contact Details", 10, 10);
+
+    //Define data in table
+    const tableData = [
+      ["ID", selectedContact.value.id],
+      ["Name", selectedContact.value.name],
+      ["Address", selectedContact.value.address],
+      ["Contact", selectedContact.value.contact],
+      ["Contact Via", selectedContact.value.contactVia],
+      ["Email", selectedContact.value.email],
+      ["Message", selectedContact.value.message]
+    ];
+
+    doc.autoTable({
+      startY:20,
+      head:[['Field','Value']],
+      body:tableData,
+    });
+
+    doc.save(`contactTable_${selectedContact.value.id}.pdf`);
+  }
+};
+
 </script>
 
 <style scoped>
