@@ -96,7 +96,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
-import {fetchData,postData} from '@/utils/api';
+import {getData, postData} from '@/utils/api';
 
 // Reactive form data
 const formData = ref({
@@ -111,10 +111,11 @@ const formData = ref({
 // Reactive state for contact via options and loading
 const serverErrors = ref({});
 
-const {data: contactViaOptions,error} = await fetchData(
-    'contact-via-options',
-    'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia'
-);
+//Used postData to get ContactViaOptions
+const {
+  data: contactViaOptions,
+  error
+} = await getData('contact-via-options', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia', 'GET', null);
 
 if (error.value) {
   console.error('Error fetching contact methods:', error.value);
@@ -137,15 +138,7 @@ const handleSubmit = async () => {
   try {
     // Reset server errors before submission
     serverErrors.value = {};
-
-    // Use useAsyncData for submitting data
-    const {data} = await postData(
-        'submit-contact-form',                // Key for caching the request
-        '/api/contacts',                      // The API endpoint
-        'POST',                               // HTTP method
-        formData.value                        // The form data to be sent
-    );
-
+    const {data} = await postData('submit-contact-form', '/api/contacts', formData.value);
     // Handle server-side validation errors
 
     console.log(data.value.code)

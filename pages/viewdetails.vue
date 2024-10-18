@@ -17,6 +17,7 @@
         <Column class="p-2 " field="message" header="Message"></Column>
         <Column class="p-2" header="Action">
           <template #body="slotProps">
+            <!--            slotProps define current row-->
             <!-- Button to open the edit dialog for a contact -->
             <Button class="m-2 p-2"
                     style="background: #eded07; border: 1px solid rgba(244,244,73,0.89); border-radius: 3px"
@@ -123,7 +124,7 @@ import {required, email, min} from '@vee-validate/rules';
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import InputText from "primevue/inputtext";
-import {fetchData, postData, deleteData} from '@/utils/api';
+import {getData, putData, deleteData} from '@/utils/api';
 
 // Validation rules
 const emailRules = computed(() => {
@@ -176,13 +177,10 @@ const editedContact = ref<Contact | null>(null);
 const updateSuccess = ref<string | null>(null);
 const contactViaOptions = reactive<string[]>([]);
 
+// Fetch contact data using the getData method
+const {data:contactData, pending:contactPending,error:contactError}=
+    await getData('contacts','http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts',null);
 
-// Fetch contact data using the fetchData method
-const {
-  data: contactData,
-  pending: contactPending,
-  error: contactError
-} = await fetchData('contacts', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts');
 if (contactError.value) {
   console.error('Failed to fetch contact data:', contactError.value);
 } else {
@@ -190,10 +188,9 @@ if (contactError.value) {
 }
 
 // Fetch contact via options using fetchData method
-const {
-  data: contactViaData,
-  error: contactViaError
-} = await fetchData('contactVia', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
+const {data: contactViaData, error: contactViaError} =
+    await getData('contactVia', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts/contactvia');
+
 if (contactViaError.value) {
   console.error('Failed to fetch contact data:', contactError.value);
 } else {
@@ -228,11 +225,8 @@ const closeEditDialog = () => {
 // Update contact details
 const updateContact = async () => {
   if (editedContact.value) {
-    const {error: updateError} = await postData(
-        `update-contact-${editedContact.value.id}`,
-        `/api/contacts/${editedContact.value.id}`,
-        'PUT',
-        editedContact.value
+    const {error: updateError} =
+        await putData(`update-contact-${editedContact.value.id}`, `/api/contacts/${editedContact.value.id}`, editedContact.value
     );
 
     if (!updateError.value) {
@@ -253,7 +247,7 @@ const updateContact = async () => {
 
 // Handle delete contact
 const handleDeleteContact = async (id: number) => {
-  const {error: deleteError} = await deleteData(`delete-contact-${id}`, id);
+const {error:deleteError}=await deleteData('delete-contact-{id}', `/api/contacts/${id}`,null);
 
   if (!deleteError.value) {
     // Remove the deleted contact from the list

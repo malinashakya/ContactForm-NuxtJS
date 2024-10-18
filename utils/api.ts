@@ -1,54 +1,40 @@
-import { useAsyncData } from '#app';
+import {useAsyncData} from '#app';
 
-// For understanding the generic method
-// const updateContact = async () => {
-//     if (editedContact.value) {
-//         const { error: updateError } = await useAsyncData(update-contact-${editedContact.value.id}, () =>
-//             $fetch(/api/contacts/${editedContact.value!.id}, {
-//             method: 'PUT',
-//                 body: editedContact.value,
-//         })
-//     )
-
-//GET method
-export const fetchData=async(key: string, url: string)=>{
-    const {data,pending,error}=await useAsyncData(key, async()=>{
-        const response=await $fetch(url);
-        return response;
-    });
-    if(error.value){
-        console.error(`Error fetching data from ${url}`);
-            }
-    return {data, pending,error};
- }
-
-//POST and PUT method
-export const postData=async(key:string, url:string, method:string,body:any)=>{
-    const {data,error}=await useAsyncData(key,async ()=>{
-        return await $fetch(url,{
-            method,body,
+//Main method to handle all POST,GET,PUT,DELETE
+export const apiData = async (key: string, url: string, method: string, body: any) => {
+    const {data, pending, error} = await useAsyncData(key, async () => {
+        return await $fetch(url, {
+            method, body,
         })
     })
-    if(error.value)
-    {
-        console.error(`Error submitting data to ${url}:`,error.value);
+    if (error.value) {
+        console.error(`Error submitting data to ${url}:`, error.value);
     }
+    return {data, error, pending};
+}
+//GET method
+export const getData = async (key: string, url: string) => {
+    const {data, pending, error} = await apiData(key, url, 'GET', null);
+    return {data, pending, error};
+}
+
+//POST method
+export const postData = async (key: string, url: string, body: any) => {
+    const {data, error} = await apiData(key, url, 'POST', body);
+    return {data, error};
+};
+
+//PUT method
+export const putData=async(key:string,url:string,body:any)=>{
+    const {data,error}=await apiData(key,url,'PUT',body);
     return {data,error};
 }
 
 //DELETE method
-export const deleteData = async (key: string, id: number) => {
-    const { data, error } = await useAsyncData(key, async () => {
-        return await $fetch(`/api/contacts/${id}`, {
-            method: 'DELETE',
-        });
-    });
+export const deleteData=async (key:string,url:string)=>{
+    const {data,error}=await apiData(key,url,'DELETE',null);
+    return {data,error};
+}
 
-    if (error.value) {
-        console.error(`Error deleting data from /api/contacts/${id}:`, error.value);
-    }
-
-    return { data, error };
-};
 
 
