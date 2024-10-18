@@ -43,8 +43,9 @@
         <p><strong>Contact Via:</strong> {{ selectedContact.contactVia }}</p>
         <p><strong>Email:</strong> {{ selectedContact.email }}</p>
         <p><strong>Message:</strong> {{ selectedContact.message }}</p>
+      <Button label="Download" icon="pi pi-download" severity="success" @click="downloadPDF"/>
       </div>
-    </Dialog>
+          </Dialog>
     <!-- Edit Dialog -->
     <Dialog v-model:visible="showEditDialog"
             :style="{ width: '30vw', background:'grey', padding:'10px',border: '1px solid grey' } "
@@ -144,6 +145,8 @@ import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import InputText from "primevue/inputtext";
 import {getData, putData, deleteData} from '@/utils/api';
+import * as jspdf from "jspdf";
+import jsPDF from "jspdf";
 
 // Validation rules
 const emailRules = computed(() => {
@@ -289,8 +292,28 @@ const handleDeleteContact = async (id: number) => {
   }
 };
 
+//Download as PDF
+const downloadPDF=()=>{
+  if(selectedContact.value)
+  {
+    const doc=new jsPDF();
+    doc.setFontSize(20);
+    doc.text("Contact Details", 10, 10); // x-axis=10, y-axis=10
+
+    doc.setFontSize(14);
+    doc.text(`ID: ${selectedContact.value.id}`, 10, 30);
+    doc.text(`Name: ${selectedContact.value.name}`, 10, 40);
+    doc.text(`Address: ${selectedContact.value.address}`, 10, 50);
+    doc.text(`Contact: ${selectedContact.value.contact}`, 10, 60);
+    doc.text(`Contact Via: ${selectedContact.value.contactVia}`, 10, 70);
+    doc.text(`Email: ${selectedContact.value.email}`, 10, 80);
+    doc.text(`Message: ${selectedContact.value.message}`, 10, 90);
+
+    // Save the generated PDF
+    doc.save(`contact_${selectedContact.value.id}.pdf`);
+  }
+}
 </script>
 
 <style scoped>
-
 </style>
