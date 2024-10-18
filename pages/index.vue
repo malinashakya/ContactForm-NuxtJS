@@ -1,9 +1,7 @@
 <template>
   <section class="contact p-d-flex">
     <div class="greet m-4">
-      <Button class="view-contact-button" @click="navigateToViewContact">
-        View Contact
-      </Button>
+      <Button label="View Contact" severity="info" @click="navigateToViewContact"/>
       <h2>Contact Me</h2>
       <h3>Let's Greet and Meet.</h3>
     </div>

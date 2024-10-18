@@ -2,7 +2,8 @@
   <div>
     <h2>Contact Data</h2>
     <!-- Display loading message while data is being fetched -->
-    <div v-if="loading">Loading...</div>
+    <div v-if="loading"><i class="pi pi-spin pi-cog" style="font-size: 10rem; margin:12.5% 50%;"></i>
+    </div>
     <!-- Display error message if there is an issue fetching data -->
     <div v-if="error">{{ error }}</div>
     <!-- Display table only if data is loaded and no errors occurred -->
@@ -19,15 +20,9 @@
           <!--            slotProps define current row-->
           <template #body="slotProps">
             <!-- Button to open the edit dialog for a contact -->
-            <Button class="m-2 p-2"
-                    style="background: #eded07; border: 1px solid rgba(244,244,73,0.89); border-radius: 3px"
-                    @click="openEditDialog(slotProps.data)"> Edit
-            </Button>
-
+            <Button class="mr-3" label="Edit"  icon="pi pi-user-edit" severity="warn" @click="openEditDialog(slotProps.data)"/>
             <!-- Button to delete a contact -->
-            <Button class="m-2 p-2" style="background: red; border: 1px solid #e35555; border-radius: 3px"
-                    @click="handleDeleteContact(slotProps.data.id)">Delete
-            </Button>
+            <Button label="Delete" icon="pi pi-trash" severity="danger" @click="handleDeleteContact(slotProps.data.id)"/>
           </template>
         </Column>
       </DataTable>
@@ -99,14 +94,9 @@
           <ErrorMessage class="error" name="message"/>
         </div>
 
-        <Button class="button p-2 m-2"
-                style="background: #eded07; border: 1px solid rgba(244,244,73,0.89); border-radius: 3px " type="submit">
-          Submit
-        </Button>
-        <Button class="button p-2 m-2 " style="background: red; border: 1px solid #e35555; border-radius: 3px"
-                @click="closeEditDialog">
-          Cancel
-        </Button>
+        <Button label="Update" icon="pi pi-pencil" severity="warn" type="submit" class="mr-3"/>
+        <Button label="Cancel" icon="pi pi-times" severity="danger"
+                @click="closeEditDialog"/>
       </Form>
 
       <div v-if="updateSuccess" class="success-message mt-2">{{ updateSuccess }}</div>

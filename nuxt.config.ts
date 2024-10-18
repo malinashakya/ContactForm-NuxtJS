@@ -5,8 +5,9 @@ export default defineNuxtConfig({
         '@primevue/nuxt-module'
     ],
     css: [
-        'primeflex/primeflex.css',
-        '@/assets/css/global.css',
+        'primeflex/primeflex.css', //Importing Primeflex
+        'primeicons/primeicons.css', //Importing PrimeIcons
+        '@/assets/css/global.css', //Importing Global CSS which we made customly
     ],
     primevue: {
         options: {

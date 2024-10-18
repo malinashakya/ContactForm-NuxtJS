@@ -4,6 +4,6 @@ body {
     font-family: Arial, sans-serif;
 }
 
-.error {
+.error, .required {
     color: red;
 }
