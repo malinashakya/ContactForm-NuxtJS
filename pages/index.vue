@@ -1,87 +1,99 @@
 <template>
   <section class="contact p-d-flex">
-    <div class="greet m-4">
+    <div class="container m-4">
       <Button label="View Contact" severity="info" @click="navigateToViewContact"/>
       <h2>Contact Me</h2>
-      <h3>Let's Greet and Meet.</h3>
-    </div>
 
     <!-- Contact Form Section -->
-    <Form class="contact-form" @submit="handleSubmit">
+    <Form class="form-grid" @submit="handleSubmit">
       <!-- Name Field -->
-      <div class="form-group m-4">
+      <div class="form-row m-4 ">
         <label for="name">Name<span class="required">*</span></label>
-        <Field v-slot="{ field }" name="name">
-          <InputText v-model="formData.name" class="full" placeholder="Your Name" v-bind="field"/>
-        </Field>
-        <ErrorMessage class="error" name="name"/>
-        <p v-if="serverErrors.name" class="error">{{ serverErrors.name }}</p>
+        <div>
+          <Field v-slot="{ field }" name="name">
+            <InputText v-model="formData.name" class="full" placeholder="Your Name" v-bind="field"/>
+          </Field>
+          <ErrorMessage class="error" name="name"/>
+          <p v-if="serverErrors.name" class="error">{{ serverErrors.name }}</p>
+        </div>
       </div>
 
       <!-- Contact Via Field -->
-      <div class="form-group m-4">
+      <div class="form-row m-4">
         <label for="contactVia">Contact Via<span class="required">*</span></label>
-        <Field v-slot="{ field }" name="contactVia" rules="required">
-          <template v-if="!isLoading">
-            <Select
-                id="contactVia"
-                v-model="formData.contactVia"
-                :options="contactViaOptions"
-                placeholder="Select Contact Method"
-                v-bind="field"
-            />
-          </template>
-          <template v-else>
-            <p>Loading options...</p> <!-- Display while loading -->
-          </template>
-        </Field>
-        <ErrorMessage class="error" name="contactVia"/>
-        <p v-if="serverErrors.contactVia" class="error">{{ serverErrors.contactVia }}</p>
+        <div>
+          <Field v-slot="{ field }" name="contactVia" rules="required">
+            <template v-if="!isLoading">
+              <Select
+                  id="contactVia"
+                  v-model="formData.contactVia"
+                  :options="contactViaOptions"
+                  placeholder="Select Contact Method"
+                  v-bind="field"
+              />
+            </template>
+            <template v-else>
+              <p>Loading options...</p> <!-- Display while loading -->
+            </template>
+          </Field>
+          <ErrorMessage class="error" name="contactVia"/>
+          <p v-if="serverErrors.contactVia" class="error">{{ serverErrors.contactVia }}</p>
+        </div>
       </div>
 
       <!-- Email Field -->
-      <div v-if="formData.contactVia === 'Email'" class="form-group m-4">
+      <div v-if="formData.contactVia === 'Email'" class="form-row m-4">
         <label for="email">Email<span class="required">*</span></label>
-        <Field v-slot="{ field }" :rules="emailRules" name="email">
-          <InputText v-model="formData.email" placeholder="Your Email" type="email" v-bind="field"/>
-        </Field>
-        <ErrorMessage class="error" name="email"/>
-        <p v-if="serverErrors.email" class="error">{{ serverErrors.email }}</p>
+        <div>
+          <Field v-slot="{ field }" :rules="emailRules" name="email">
+            <InputText v-model="formData.email" placeholder="Your Email" type="email" v-bind="field"/>
+          </Field>
+          <ErrorMessage class="error" name="email"/>
+          <p v-if="serverErrors.email" class="error">{{ serverErrors.email }}</p>
+        </div>
       </div>
 
       <!-- Contact Field -->
-      <div v-if="formData.contactVia === 'Phone'" class="form-group m-4">
+      <div v-if="formData.contactVia === 'Phone'" class="form-row m-4">
         <label for="contact">Contact<span class="required">*</span></label>
-        <Field v-slot="{ field }" :rules="contactRules" name="contact">
-          <InputText v-model="formData.contact" placeholder="Your Contact" v-bind="field"/>
-        </Field>
-        <ErrorMessage class="error" name="contact"/>
-        <p v-if="serverErrors.contact" class="error">{{ serverErrors.contact }}</p>
+        <div>
+          <Field v-slot="{ field }" :rules="contactRules" name="contact">
+            <InputText v-model="formData.contact" placeholder="Your Contact" v-bind="field"/>
+          </Field>
+          <ErrorMessage class="error" name="contact"/>
+          <p v-if="serverErrors.contact" class="error">{{ serverErrors.contact }}</p>
+        </div>
       </div>
 
       <!-- Address Field -->
-      <div class="form-group m-4">
+      <div class="form-row m-4">
         <label for="address">Address<span class="required">*</span></label>
-        <Field v-slot="{ field }" name="address" rules="required|min:3">
-          <InputText v-model="formData.address" placeholder="Your Address" v-bind="field"/>
-        </Field>
-        <ErrorMessage class="error" name="address"/>
-        <p v-if="serverErrors.address" class="error">{{ serverErrors.address }}</p>
+        <div>
+          <Field v-slot="{ field }" name="address" rules="required|min:3">
+            <InputText v-model="formData.address" placeholder="Your Address" v-bind="field"/>
+          </Field>
+          <ErrorMessage class="error" name="address"/>
+          <p v-if="serverErrors.address" class="error">{{ serverErrors.address }}</p>
+        </div>
       </div>
 
       <!-- Message Field -->
-      <div class="form-group m-4">
+      <div class="form-row m-4">
         <label for="message">Message<span class="required">*</span></label>
-        <Field v-slot="{ field }" name="message" rules="required|min:10">
-          <Textarea v-model="formData.message" placeholder="Your Message" rows="4" v-bind="field"/>
-        </Field>
-        <ErrorMessage class="error" name="message"/>
-        <p v-if="serverErrors.message" class="error">{{ serverErrors.message }}</p>
+        <div>
+          <Field v-slot="{ field }" name="message" rules="required|min:10">
+            <Textarea v-model="formData.message" placeholder="Your Message" rows="4" v-bind="field"/>
+          </Field>
+          <ErrorMessage class="error" name="message"/>
+          <p v-if="serverErrors.message" class="error">{{ serverErrors.message }}</p>
+        </div>
       </div>
 
       <!-- Submit Button -->
-      <Button class="m-4" type="submit">Send Message</Button>
+      <Button class="m-4"  type="submit">Send Message</Button>
+
     </Form>
+    </div>
   </section>
 </template>
 

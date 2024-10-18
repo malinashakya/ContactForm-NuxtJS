@@ -7,3 +7,13 @@ body {
 .error, .required {
     color: red;
 }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Labels take natural width, inputs take remaining space */
+    gap: 10px;
+}
+
+.form-row {
+    display: contents;
+}
