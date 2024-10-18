@@ -119,6 +119,7 @@ const {
 
 if (error.value) {
   console.error('Error fetching contact methods:', error.value);
+  alert('Error fetching contact methods');
 } else {
   // Use contactViaOptions
   console.log('Fetched options:', contactViaOptions.value);
@@ -147,7 +148,6 @@ const handleSubmit = async () => {
       return;
     }
     alert(`Thank you, ${formData.value.name}! Your message has been sent.`);
-
     // Clear form data after submission
     Object.keys(formData.value).forEach(key => (formData.value[key] = ''));
   } catch (error) {
@@ -164,7 +164,7 @@ const handleServerValidationErrors = (errors) => {
   if (errors.error) {
     console.log(errors.error)
     if (errors.error.includes('ConstraintViolationException')) {
-      alert('A database error occurred. Make sure you have not submitted email or contact before'); // Alert for generic database error
+      alert('A database error occurred. Make sure you have not submitted email or contact before.'); // Alert for generic database error
       return;
     }
     const violationMessages = extractViolationMessages(errors.error);
@@ -185,7 +185,6 @@ const handleServerValidationErrors = (errors) => {
         serverErrors.value.message = message;
       }
     });
-
   }
 };
 

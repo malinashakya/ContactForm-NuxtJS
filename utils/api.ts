@@ -25,15 +25,15 @@ export const postData = async (key: string, url: string, body: any) => {
 };
 
 //PUT method
-export const putData=async(key:string,url:string,body:any)=>{
-    const {data,error}=await apiData(key,url,'PUT',body);
-    return {data,error};
+export const putData = async (key: string, url: string, body: any) => {
+    const {data, error} = await apiData(key, url, 'PUT', body);
+    return {data, error};
 }
 
 //DELETE method
-export const deleteData=async (key:string,url:string)=>{
-    const {data,error}=await apiData(key,url,'DELETE',null);
-    return {data,error};
+export const deleteData = async (key: string, url: string) => {
+    const {data, error} = await apiData(key, url, 'DELETE', null);
+    return {data, error};
 }
 
 

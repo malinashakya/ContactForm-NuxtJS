@@ -16,8 +16,8 @@
         <Column class="p-2" field="email" header="Email"></Column>
         <Column class="p-2 " field="message" header="Message"></Column>
         <Column class="p-2" header="Action">
+          <!--            slotProps define current row-->
           <template #body="slotProps">
-            <!--            slotProps define current row-->
             <!-- Button to open the edit dialog for a contact -->
             <Button class="m-2 p-2"
                     style="background: #eded07; border: 1px solid rgba(244,244,73,0.89); border-radius: 3px"
@@ -178,11 +178,12 @@ const updateSuccess = ref<string | null>(null);
 const contactViaOptions = reactive<string[]>([]);
 
 // Fetch contact data using the getData method
-const {data:contactData, pending:contactPending,error:contactError}=
-    await getData('contacts','http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts',null);
+const {data: contactData, pending: contactPending, error: contactError} =
+    await getData('contacts', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', null);
 
 if (contactError.value) {
   console.error('Failed to fetch contact data:', contactError.value);
+  alert('Failed to fetch contact data');
 } else {
   console.log('Contact data fetched successfully:', contactData.value);
 }
@@ -227,17 +228,18 @@ const updateContact = async () => {
   if (editedContact.value) {
     const {error: updateError} =
         await putData(`update-contact-${editedContact.value.id}`, `/api/contacts/${editedContact.value.id}`, editedContact.value
-    );
+        );
 
     if (!updateError.value) {
       // Update the contact list with the new data
       contacts.value = contacts.value.map(contact =>
           contact.id === editedContact.value!.id ? editedContact.value! : contact  //! use for telling, it is not null, always has value
       );
-      updateSuccess.value = 'Contact updated successfully!';
+      alert('Contact updated successfully!');
     } else {
       error.value = 'Failed to update contact.';
       console.error('Error updating contact:', updateError.value);
+      alert('Error updating contact:', updateError.value);
     }
 
     // Close the dialog once the operation is complete
@@ -247,14 +249,16 @@ const updateContact = async () => {
 
 // Handle delete contact
 const handleDeleteContact = async (id: number) => {
-const {error:deleteError}=await deleteData('delete-contact-{id}', `/api/contacts/${id}`,null);
+  const {error: deleteError} = await deleteData('delete-contact-{id}', `/api/contacts/${id}`, null);
 
   if (!deleteError.value) {
     // Remove the deleted contact from the list
     contacts.value = contacts.value.filter(contact => contact.id !== id);
+    alert('Contact deleted successfully');
   } else {
     error.value = 'Failed to delete contact.';
     console.error('Error deleting contact:', deleteError.value);
+    alert('Error deleting contact:', deleteError.value);
   }
 };
 

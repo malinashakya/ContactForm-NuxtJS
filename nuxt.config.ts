@@ -18,7 +18,7 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         public: {
-            apiBase: ''  // Leave empty to use with proxy
+            apiBase: ''
         }
     },
 
