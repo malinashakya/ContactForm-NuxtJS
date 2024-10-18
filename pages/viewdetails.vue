@@ -19,9 +19,10 @@
         <Column class="p-2" header="Action">
           <!--            slotProps define current row-->
           <template #body="slotProps">
+            <!-- Button to open the view dialog for a contact -->
+            <Button class="mr-3" icon="pi pi-eye" severity="info"
+            @click="openViewDialog(slotProps.data)"/>
             <!-- Button to open the edit dialog for a contact -->
-            <Button class="mr-3" icon="pi pi-eye" severity="info"/>
-
             <Button class="mr-3" icon="pi pi-user-edit" severity="warn"
                     @click="openEditDialog(slotProps.data)"/>
             <!-- Button to delete a contact -->
@@ -32,6 +33,18 @@
       </DataTable>
     </div>
 
+<!--    View Dialog-->
+    <Dialog v-model:visible="showViewDialog" :style="{width:'30vw'}" header="Contact Details">
+      <div v-if="selectedContact">
+        <p><strong>ID:</strong> {{ selectedContact.id }}</p>
+        <p><strong>Name:</strong> {{ selectedContact.name }}</p>
+        <p><strong>Address:</strong> {{ selectedContact.address }}</p>
+        <p><strong>Contact:</strong> {{ selectedContact.contact }}</p>
+        <p><strong>Contact Via:</strong> {{ selectedContact.contactVia }}</p>
+        <p><strong>Email:</strong> {{ selectedContact.email }}</p>
+        <p><strong>Message:</strong> {{ selectedContact.message }}</p>
+      </div>
+    </Dialog>
     <!-- Edit Dialog -->
     <Dialog v-model:visible="showEditDialog"
             :style="{ width: '30vw', background:'grey', padding:'10px',border: '1px solid grey' } "
@@ -182,6 +195,8 @@ const showEditDialog = ref(false);
 const editedContact = ref<Contact | null>(null);
 const updateSuccess = ref<string | null>(null);
 const contactViaOptions = reactive<string[]>([]);
+const showViewDialog=ref(false);
+const selectedContact=ref<Contact|null>(null);
 
 // Fetch contact data using the getData method
 const {data: contactData, pending: contactPending, error: contactError} =
@@ -220,6 +235,12 @@ onMounted(() => {
 const openEditDialog = (contact: Contact) => {
   editedContact.value = {...contact};
   showEditDialog.value = true;
+};
+
+// Open the view dialog box
+const openViewDialog = (contact: Contact) => {
+  selectedContact.value = {...contact};
+  showViewDialog.value = true;
 };
 
 // Close the edit dialog
