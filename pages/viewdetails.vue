@@ -150,7 +150,6 @@ import InputText from "primevue/inputtext";
 import {getData, putData, deleteData} from '@/utils/api';
 import jsPDF from "jspdf";
 import 'jspdf-autotable';
-import tab from "primevue/tab/Tab.vue";
 
 // Validation rules
 const emailRules = computed(() => {
