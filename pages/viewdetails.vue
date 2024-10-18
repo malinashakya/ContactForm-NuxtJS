@@ -52,80 +52,81 @@
             :style="{ width: '30vw', background:'grey', padding:'10px',border: '1px solid grey' } "
             header="Edit Contact"
             modal>
-      <Form class="form-grid" @submit="updateContact">
-        <div class="form-row p-mb-4">
-          <label for="name">Name<span class="required">*</span></label>
-          <div>
-            <Field v-slot="{ field, errorMessage }" v-model="editedContact.name" name="name" rules="required|min:3">
-              <InputText
-                  placeholder="Your Name"
-                  v-bind="field"/>
-            </Field>
-            <ErrorMessage class="error" name="name"/>
+      <Form @submit="updateContact">
+        <div class="form-grid">
+          <div class="form-row p-mb-4">
+            <label for="name">Name<span class="required">*</span></label>
+            <div>
+              <Field v-slot="{ field, errorMessage }" v-model="editedContact.name" name="name" rules="required|min:3">
+                <InputText
+                    placeholder="Your Name"
+                    v-bind="field"/>
+              </Field>
+              <ErrorMessage class="error" name="name"/>
+            </div>
+          </div>
+
+          <!-- Contact Via Field -->
+          <div class="form-row m-4">
+            <label for="contactVia">Contact Via<span class="required">*</span></label>
+            <div>
+              <Field v-slot="{ field }" name="contactVia" rules="required">
+                <Select
+                    id="contactVia"
+                    v-model="editedContact.contactVia"
+                    :options="contactViaOptions"
+                    placeholder="Select Contact Method"
+                    v-bind="field"
+                />
+              </Field>
+            </div>
+            <ErrorMessage class="error" name="contactVia"/>
+          </div>
+
+          <!-- Email Field -->
+          <div v-if="editedContact.contactVia === 'Email'" class="form-row m-4">
+            <label for="email">Email<span class="required">*</span></label>
+            <div>
+              <Field v-slot="{ field }" :rules="emailRules" name="email">
+                <InputText v-model="editedContact.email" placeholder="Your Email" type="email" v-bind="field"/>
+              </Field>
+              <ErrorMessage class="error" name="email"/>
+            </div>
+          </div>
+
+          <!-- Contact Field -->
+          <div v-if="editedContact.contactVia === 'Phone'" class="form-row m-4">
+            <label for="contact">Contact<span class="required">*</span></label>
+            <div>
+              <Field v-slot="{ field }" :rules="contactRules" name="contact">
+                <InputText v-model="editedContact.contact" placeholder="Your Contact" v-bind="field"/>
+              </Field>
+              <ErrorMessage class="error" name="contact"/>
+            </div>
+          </div>
+
+          <div class="form-row p-mb-4">
+            <label for="address">Address<span class="required">*</span></label>
+            <div>
+              <Field v-slot="{ field, errorMessage }" v-model="editedContact.address" name="address"
+                     rules="required|min:3">
+                <InputText placeholder="Your Address" v-bind="field"/>
+              </Field>
+              <ErrorMessage class="error" name="address"/>
+            </div>
+          </div>
+
+          <div class="form-row p-mb-4">
+            <label for="message">Message<span class="required">*</span></label>
+            <div>
+              <Field v-slot="{ field, errorMessage }" v-model="editedContact.message" name="message"
+                     rules="required|min:10">
+                <Textarea placeholder="Your Message" rows="4" v-bind="field"/>
+              </Field>
+              <ErrorMessage class="error" name="message"/>
+            </div>
           </div>
         </div>
-
-        <!-- Contact Via Field -->
-        <div class="form-row m-4">
-          <label for="contactVia">Contact Via<span class="required">*</span></label>
-          <div>
-            <Field v-slot="{ field }" name="contactVia" rules="required">
-              <Select
-                  id="contactVia"
-                  v-model="editedContact.contactVia"
-                  :options="contactViaOptions"
-                  placeholder="Select Contact Method"
-                  v-bind="field"
-              />
-            </Field>
-          </div>
-          <ErrorMessage class="error" name="contactVia"/>
-        </div>
-
-        <!-- Email Field -->
-        <div v-if="editedContact.contactVia === 'Email'" class="form-row m-4">
-          <label for="email">Email<span class="required">*</span></label>
-          <div>
-            <Field v-slot="{ field }" :rules="emailRules" name="email">
-              <InputText v-model="editedContact.email" placeholder="Your Email" type="email" v-bind="field"/>
-            </Field>
-            <ErrorMessage class="error" name="email"/>
-          </div>
-        </div>
-
-        <!-- Contact Field -->
-        <div v-if="editedContact.contactVia === 'Phone'" class="form-row m-4">
-          <label for="contact">Contact<span class="required">*</span></label>
-          <div>
-            <Field v-slot="{ field }" :rules="contactRules" name="contact">
-              <InputText v-model="editedContact.contact" placeholder="Your Contact" v-bind="field"/>
-            </Field>
-            <ErrorMessage class="error" name="contact"/>
-          </div>
-        </div>
-
-        <div class="form-row p-mb-4">
-          <label for="address">Address<span class="required">*</span></label>
-          <div>
-            <Field v-slot="{ field, errorMessage }" v-model="editedContact.address" name="address"
-                   rules="required|min:3">
-              <InputText placeholder="Your Address" v-bind="field"/>
-            </Field>
-            <ErrorMessage class="error" name="address"/>
-          </div>
-        </div>
-
-        <div class="form-row p-mb-4">
-          <label for="message">Message<span class="required">*</span></label>
-          <div>
-            <Field v-slot="{ field, errorMessage }" v-model="editedContact.message" name="message"
-                   rules="required|min:10">
-              <Textarea placeholder="Your Message" rows="4" v-bind="field"/>
-            </Field>
-            <ErrorMessage class="error" name="message"/>
-          </div>
-        </div>
-
         <Button class="mr-3" icon="pi pi-pencil" label="Update" severity="warn" type="submit"/>
         <Button icon="pi pi-times" label="Cancel" severity="danger"
                 @click="closeEditDialog"/>
@@ -336,9 +337,9 @@ const downloadPDFTable = () => {
     ];
 
     doc.autoTable({
-      startY:20,
-      head:[['Field','Value']],
-      body:tableData,
+      startY: 20,
+      head: [['Field', 'Value']],
+      body: tableData,
     });
 
     doc.save(`contactTable_${selectedContact.value.id}.pdf`);
