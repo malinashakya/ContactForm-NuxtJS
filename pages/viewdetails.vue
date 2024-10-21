@@ -368,8 +368,8 @@ const logout = () => {
   useCookie('auth_token_expiration').value = null;
   useCookie('username').value = null;
 
-  window.location.href = '/loginpage'; // Change this path as needed
-};
+  window.location.href = '/loginpage';
+}
 </script>
 
 <style scoped>
