@@ -8,14 +8,23 @@
     <div v-if="error">{{ error }}</div>
     <!-- Display table only if data is loaded and no errors occurred -->
     <div class="p-d-flex p-flex-column p-ai-center p-4">
-      <DataTable v-if="!loading && !error" :value="contacts" show-gridlines tableStyle="min-width: 50rem">
-        <Column class="p-2" field="id" header="ID"></Column>
-        <Column class="p-2" field="name" header="Name"></Column>
-        <Column class="p-2" field="address" header="Address"></Column>
-        <Column class="p-2" field="contact" header="Contact"></Column>
-        <Column class="p-2" field="contactVia" header="Contact Via"></Column>
-        <Column class="p-2" field="email" header="Email"></Column>
-        <Column class="p-2 " field="message" header="Message"></Column>
+      <DataTable v-if="!loading && !error" :lazy="true"
+                 :value="contacts"
+                 tableStyle="min-width: 50rem">
+        <Column class="p-2" field="id" header="ID">
+        </Column>
+        <Column class="p-2" field="name" header="Name">
+        </Column>
+        <Column class="p-2" field="address" header="Address">
+        </Column>
+        <Column class="p-2" field="contact" header="Contact">
+        </Column>
+        <Column class="p-2" field="contactVia" header="Contact Via">
+        </Column>
+        <Column class="p-2" field="email" header="Email">
+        </Column>
+        <Column class="p-2 " field="message" header="Message">
+        </Column>
         <Column class="p-2" header="Action">
           <!--            slotProps define current row-->
           <template #body="slotProps">
@@ -243,13 +252,11 @@ const openEditDialog = (contact: Contact) => {
   showEditDialog.value = true;
 };
 
-// Open the view dialog box
 const openViewDialog = (contact: Contact) => {
   selectedContact.value = {...contact};
   showViewDialog.value = true;
 };
 
-// Close the edit dialog
 const closeEditDialog = () => {
   showEditDialog.value = false;
   editedContact.value = null;
@@ -275,7 +282,6 @@ const updateContact = async () => {
       alert('Error updating contact:', updateError.value);
     }
 
-    // Close the dialog once the operation is complete
     closeEditDialog();
   }
 };
