@@ -1,5 +1,6 @@
 <template>
   <div class="card">
+<!--    No. of items which willbe displayed= scrollHeight/itemSize-->
     <DataTable
         :value="virtualContacts"
         :virtualScrollerOptions="{
@@ -94,7 +95,7 @@ const loadContactsLazy = async (event) => {
         throw new Error('Expected data.result to be an array');
       }
 
-      virtualContacts.value.splice(first, rows, ...response.value.result);
+      virtualContacts.value.splice(first, rows, ...response.value.result); //purano thau ma new data replaced
 
     } catch (error) {
       console.error('Error fetching data:', error);
