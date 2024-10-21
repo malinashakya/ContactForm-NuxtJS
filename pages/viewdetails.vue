@@ -1,11 +1,14 @@
 <template>
   <div>
-    <h2>Contact Data</h2>
+    <h2>Contact Data </h2>
+    <!-- Logout Button -->
+    <Button class="p-button-danger" label="Logout" @click="logout"/>
     <!-- Display loading message while data is being fetched -->
     <div v-if="loading"><i class="pi pi-spin pi-cog" style="font-size: 10rem; margin:12.5% 50%;"></i>
     </div>
     <!-- Display error message if there is an issue fetching data -->
     <div v-if="error">{{ error }}</div>
+
     <!-- Display table only if data is loaded and no errors occurred -->
     <div class="p-d-flex p-flex-column p-ai-center p-4">
       <DataTable v-if="!loading && !error" :lazy="true"
@@ -147,6 +150,14 @@
 </template>
 
 <script lang="ts" setup>
+
+//No Login no access
+import {definePageMeta} from "#imports";
+
+definePageMeta({
+  middleware: 'auth',
+})
+
 import {ref, onMounted, reactive, computed} from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -351,6 +362,14 @@ const downloadPDFTable = () => {
   }
 };
 
+// Logout method
+const logout = () => {
+  useCookie('auth_token').value = null;
+  useCookie('auth_token_expiration').value = null;
+  useCookie('username').value = null;
+
+  window.location.href = '/loginpage'; // Change this path as needed
+};
 </script>
 
 <style scoped>

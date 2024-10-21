@@ -34,7 +34,7 @@ const router = useRouter();
 // Login function
 const login = async () => {
   try {
-    const {data, error} = await useFetch('/admins/login', { // Updated to use the proxied endpoint
+    const {data, error} = await useFetch('/admins/login', {
       method: 'POST',
       body: JSON.stringify({
         username: username.value,
@@ -48,7 +48,19 @@ const login = async () => {
     if (error.value || data.value.success === 'false') {
       errorMessage.value = 'Invalid credentials. Please try again.';
     } else {
-      router.push({name: 'index'});
+      const result = JSON.parse(data.value.result);
+      const token = result.token;
+      const loggedInUsername = result.username;
+
+      useCookie('auth_token').value = token;
+
+      const expirationDate = new Date(new Date().getTime() + 5 * 60 * 1000); // 5 minutes
+      useCookie('auth_token_expiration').value = expirationDate.toISOString();//Date to string
+
+      useCookie('username').value = loggedInUsername;
+
+      // Navigate to the main page
+      router.push({name: 'viewdetails'});
     }
   } catch (err) {
     errorMessage.value = 'An error occurred. Please try again.';
@@ -57,9 +69,7 @@ const login = async () => {
 </script>
 
 <style scoped>
-
-.error, .errorMessage {
+.errorMessage {
   color: red;
-  margin-top: 1rem;
 }
 </style>

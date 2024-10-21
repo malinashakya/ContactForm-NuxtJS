@@ -4,7 +4,7 @@ body {
     font-family: Arial, sans-serif;
 }
 
-.error, .required {
+.error, .required, .errorMessage {
     color: red;
 }
 
