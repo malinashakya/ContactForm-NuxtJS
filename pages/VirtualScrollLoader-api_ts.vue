@@ -69,8 +69,8 @@
 
 <script setup>
 import {ref} from 'vue';
-import axios from 'axios';
 import Column from "primevue/column";
+import {getData} from '@/utils/api';
 
 const virtualContacts = ref(Array.from({length: 100000})); //Placeholder until real data come
 const lazyLoading = ref(false);
@@ -87,17 +87,14 @@ const loadContactsLazy = async (event) => {
     const {first, rows} = event;
 
     try {
-      const response =
-          await axios.get(`http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts?start=${first}&limit=${rows}`);
-      console.log(response);
-      const data = response.data;
-      console.log(data);
-      // Check if the result is an array before using it
-      if (!Array.isArray(data.result)) {
+      const {data: response} =
+          await getData('contacts', `http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts?start=${first}&limit=${rows}`);
+
+      if (!Array.isArray(response.value.result)) {
         throw new Error('Expected data.result to be an array');
       }
 
-      virtualContacts.value.splice(first, rows, ...data.result);
+      virtualContacts.value.splice(first, rows, ...response.value.result);
 
     } catch (error) {
       console.error('Error fetching data:', error);

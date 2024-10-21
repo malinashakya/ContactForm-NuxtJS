@@ -215,7 +215,7 @@ const selectedContact = ref<Contact | null>(null);
 
 // Fetch contact data using the getData method
 const {data: contactData, pending: contactPending, error: contactError} =
-    await getData('contacts', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts', null);
+    await getData('contacts', 'http://localhost:8080/ContactForm-1.0-SNAPSHOT/api/contacts');
 
 if (contactError.value) {
   console.error('Failed to fetch contact data:', contactError.value);
