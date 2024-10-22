@@ -19,6 +19,13 @@
 </template>
 
 <script setup>
+//No Login no access
+import {definePageMeta} from "#imports";
+
+definePageMeta({
+  middleware: 'auth',
+});
+
 import {ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {useFetch} from '#app';
